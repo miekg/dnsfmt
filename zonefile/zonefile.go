@@ -23,8 +23,8 @@ func (z Zonefile) String() string {
 // Represents an entry in the zonefile
 type Entry struct {
 	tokens    []taggedToken
-	isControl bool // is this a control ($INCLUDE, $TTL, ...) entry?
-	isComment bool // is this a comment
+	IsControl bool // is this a control ($INCLUDE, $TTL, ...) entry?
+	IsComment bool // is this a comment
 }
 
 // For a control entry, returns its command (e.g. $TTL, $ORIGIN, ...)
@@ -64,10 +64,10 @@ func (e Entry) Type() []byte {
 }
 
 func (e Entry) String() string {
-	if e.isControl {
+	if e.IsControl {
 		return fmt.Sprintf("<Entry cmd=%q %q>", e.Command(), e.Values())
 	}
-	if e.isComment {
+	if e.IsComment {
 		return fmt.Sprintf("<Entry comment %q>", e.Comments())
 	}
 	var sTTL string
@@ -99,6 +99,7 @@ func (e Entry) Values() (ret [][]byte) {
 	return
 }
 
+// Comments returns the comments for the entry.
 func (e Entry) Comments() (ret [][]byte) {
 	is := e.find(useComment)
 	for i := 0; i < len(is); i++ {
@@ -211,8 +212,7 @@ func Load(data []byte) (r *Zonefile, e ParsingError) {
 
 		line = append(line, t)
 		if t.typ == tokenNewline && itemsInLine == 0 {
-			// comment or empty line
-			println("L", len(line))
+			// comment
 			entry, err := parseLine(line)
 			if err != nil {
 				return nil, err
@@ -318,7 +318,7 @@ func parseLine(line []token) (e Entry, err ParsingError) {
 	}
 	if iFirstItem == -1 {
 		// Assume comment, TODO(miek): not always true?
-		e.isComment = true
+		e.IsComment = true
 		//err = newParsingError("there is an empty line: this should not happen", line[0])
 		return
 	}
@@ -329,7 +329,7 @@ func parseLine(line []token) (e Entry, err ParsingError) {
 		bytes.Equal(e.tokens[iFirstItem].t.Value(), []byte("$GENERATE")) ||
 		bytes.Equal(e.tokens[iFirstItem].t.Value(), []byte("$TTL")) {
 		e.tokens[iFirstItem].u = useControl
-		e.isControl = true
+		e.IsControl = true
 		for i := iFirstItem + 1; i < len(e.tokens); i++ {
 			if e.tokens[i].t.IsItem() {
 				e.tokens[i].u = useValue

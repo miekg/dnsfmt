@@ -1,3 +1,5 @@
+$TTL 60
+$ORIGIN atoom.net.
 @       IN      SOA     linode.atoom.net. miek.miek.nl. (
                        1282630067       ; Serial
                              4H         ; Refresh
@@ -5,6 +7,6 @@
                              7D         ; Expire
                              4H )       ; Negative Cache TTL
 
-lafhart         IN      A       178.79.160.171
+lafhart.atoom.net.         IN      A       178.79.160.171
 ; bramk
 voordeur        IN      A       77.249.87.46

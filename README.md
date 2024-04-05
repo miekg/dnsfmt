@@ -4,7 +4,7 @@ This tools (re)formats zone files keeping comments and $-pragmas intact.
 It also sorts the zone file on:
 
 * label count, and then
-* alphabetically within a set a of names with the same labelcount
+* and type, A, AAAA first, then the rest.
 
 Furhter more:
 
@@ -12,3 +12,7 @@ Furhter more:
 * per label-count block the....
 
 DNSSEC
+
+Formatting of keys
+
+Comment inside RRs are discarded (the SOA ;Serial thing).

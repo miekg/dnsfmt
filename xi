@@ -13,16 +13,16 @@ $ORIGIN atoom.net.
                 IN      AAAA    2a10:3781:2dc2:3::53
 
 linode          IN      A       45.138.52.215
-                IN      AAAA    2a10:3781:2dc2:3::53
+linode                IN      AAAA    2a10:3781:2dc2:3::53
 
 nuc             IN      A       45.138.52.215
                 IN      AAAA    2a10:3781:2dc2:3::53
 
 www         	IN  	CNAME   nuc
-g         IN  	CNAME   nuc
+g.atoom.net.         IN  	CNAME   nuc
 
 ; bramk
 ; nog een comment
-google.com.		1394	IN	TXT	"google-site-verification=wD8N7i1JTNTkezJ49swvWW48f8_9xveREV4oB-0Hf5o"
+google.com.		1394	IN	TXT	"google-site-verification=wD8N7i1JTNTkezJ49swvWW48f8_9xveREV4oB-0Hf5o" "more"
 lafhart         IN      A       178.79.160.171
 voordeur        IN      A       77.249.87.46
