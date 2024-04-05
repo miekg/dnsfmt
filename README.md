@@ -1,18 +1,17 @@
 # Opiniated DNS zone file formatter
 
 This tools (re)formats zone files keeping comments and $-pragmas intact.
-It also sorts the zone file on:
+It does remove in RR comments, i.e '; Serial' and friends.
 
-* label count, and then
-* and type, A, AAAA first, then the rest.
+It strips unnecessary origins from names. Every new 'set' of names will get a newline.
+If a name is repeated for a different type, the name is stripped.
 
-Furhter more:
+TTLs are converted back to human form.
 
-* origin is removed from each name
-* per label-count block the....
+The order of names is kept.
 
 DNSSEC
 
 Formatting of keys
 
-Comment inside RRs are discarded (the SOA ;Serial thing).
+Long records...

@@ -37,16 +37,15 @@ func main() {
 			continue
 		}
 		if e.IsControl {
-			if bytes.Equal(e.Command(), []byte("$ORIGIN ")) {
+			if bytes.Equal(e.Command(), []byte("$ORIGIN")) {
 				origin = e.Values()[0]
-				println(string(origin))
 			}
 			continue
 		}
-		if bytes.HasSuffix(e.Domain(), origin) {
+		if len(origin) > 0 && bytes.HasSuffix(e.Domain(), origin) {
 			// remove origin plus dot.
 			l := len(e.Domain())
-			e.SetDomain(e.Domain()[:l-len(origin)])
+			e.SetDomain(e.Domain()[:l-len(origin)-1])
 		}
 
 		if l := len(e.Domain()); l > longestname {
