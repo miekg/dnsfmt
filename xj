@@ -7,6 +7,8 @@ $ORIGIN atoom.net.
                              7D         ; Expire
                              4H )       ; Negative Cache TTL
 
+atoom.net. IN NS ns.miek.nl.
+
 lafhart.atoom.net.         IN      A       178.79.160.171
 ; bramk
 voordeur        IN      A       77.249.87.46

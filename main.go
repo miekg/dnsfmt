@@ -45,7 +45,12 @@ func main() {
 		if len(origin) > 0 && bytes.HasSuffix(e.Domain(), origin) {
 			// remove origin plus dot.
 			l := len(e.Domain())
-			e.SetDomain(e.Domain()[:l-len(origin)-1])
+
+			if l == len(origin) {
+				e.SetDomain([]byte("@"))
+			} else {
+				e.SetDomain(e.Domain()[:l-len(origin)-1])
+			}
 		}
 
 		if l := len(e.Domain()); l > longestname {
