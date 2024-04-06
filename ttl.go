@@ -20,6 +20,11 @@ const (
 )
 
 func TimeToHuman(ttl *int) string {
+	// not for these smaller ones
+	if *ttl <= 600 {
+		return fmt.Sprintf("%d", *ttl)
+	}
+
 	// round to nearest minute?
 	t := *ttl
 	week := t / Week
@@ -34,8 +39,8 @@ func TimeToHuman(ttl *int) string {
 	min := t / Minute
 	t -= min * Minute
 
-	sec := t / Second
-	t -= sec * Second
+	//	sec := t / Second
+	//	t -= sec * Second
 
 	s := ""
 	if week > 0 {
@@ -50,8 +55,6 @@ func TimeToHuman(ttl *int) string {
 	if min > 0 {
 		s += fmt.Sprintf("%dM", min)
 	}
-	if sec > 0 {
-		s += fmt.Sprintf("%dS", sec)
-	}
+	// discard sec
 	return s
 }

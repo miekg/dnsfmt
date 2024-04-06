@@ -24,5 +24,5 @@ g.atoom.net.         IN  	CNAME   nuc
 ; bramk
 ; nog een comment
 google.com.		1394	IN	TXT	"google-site-verification=wD8N7i1JTNTkezJ49swvWW48f8_9xveREV4oB-0Hf5o" "more"
-lafhart         IN      A       178.79.160.171
-voordeur        IN      A       77.249.87.46
+lafhart         60 IN      A       178.79.160.171
+voordeur        600 IN      A       77.249.87.46

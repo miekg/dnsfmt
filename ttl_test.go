@@ -12,6 +12,6 @@ func TestTimeToHuman(t *testing.T) {
 
 	in = Week + Hour
 	if x := TimeToHuman(&in); x != "1W1H" {
-		t.Errorf("expected %s, got %s", "1W!H", x)
+		t.Errorf("expected %s, got %s", "1W1H", x)
 	}
 }

@@ -24,7 +24,7 @@ The zone is formatted according to the following rules:
 * a new comments gets an empty line before it
 * a new ownername gets an empty line before it
 * repeated ownernames are suppressed
-* TTLs are _all_ converted to human readable form
+* TTLs are _all_ converted to human readable form (on minute accuracy) when they are larger than 600
 * long records (DNSKEYs, RRSIGs) are wrapped and placed in braces
 
 No semantic checks are done, this is purely text manipulation with some basic zone file syntax
