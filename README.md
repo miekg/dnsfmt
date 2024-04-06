@@ -1,9 +1,10 @@
 # Opiniated DNS zone file formatter
 
-Works, but WIP.
-
 This tools (re)formats zone files keeping comments and $-pragmas intact. It does remove in-RR
 comments, i.e '; Serial' and friends, although for SOA records these get added back.
+
+Builds up-on: https://github.com/bwesterb/go-zonefile which is butchered and vendored in ./zonefile.
+(Only needed half of the functionality and comments weren't fleshed out.)
 
 **dnsfmt** is a filter.
 
@@ -15,3 +16,5 @@ comments, i.e '; Serial' and friends, although for SOA records these get added b
 
 No semantic checks are done, this is purely text manipulation with some basic zone file syntax
 understanding.
+
+Needs some tests, a manual page.

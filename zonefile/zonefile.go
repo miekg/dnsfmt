@@ -15,10 +15,6 @@ type Zonefile struct {
 	suffix  []token
 }
 
-func (z Zonefile) String() string {
-	return fmt.Sprintf("<Zonefile %v>", z.entries)
-}
-
 // Represents an entry in the zonefile
 type Entry struct {
 	tokens    []taggedToken
@@ -60,23 +56,6 @@ func (e Entry) Type() []byte {
 		return nil
 	}
 	return e.tokens[is[0]].t.Value()
-}
-
-func (e Entry) String() string {
-	if e.IsControl {
-		return fmt.Sprintf("<Entry cmd=%q %q>", e.Command(), e.Values())
-	}
-	if e.IsComment {
-		return fmt.Sprintf("<Entry comment %q>", e.Comments())
-	}
-	var sTTL string
-	if e.TTL() == nil {
-		sTTL = ""
-	} else {
-		sTTL = strconv.Itoa(*e.TTL())
-	}
-	return fmt.Sprintf("<Entry dom=%q ttl=%q cls=%q typ=%q %q %q>",
-		e.Domain(), sTTL, e.Class(), e.Type(), e.Values(), e.Comments())
 }
 
 // The TTL specified for the entry
@@ -135,26 +114,14 @@ func (e Entry) startOfLine() (r int) {
 	return 0
 }
 
-type ParsingError interface {
-	error
-	LineNo() int
-	ColNo() int
-}
-
-type parsingError struct {
+type ParsingError struct {
 	msg    string
-	lineno int
-	colno  int
+	LineNo int
+	ColNo  int
 }
 
-func (e parsingError) Error() string {
+func (e *ParsingError) Error() string {
 	return e.msg
-}
-func (e parsingError) LineNo() int {
-	return e.lineno
-}
-func (e parsingError) ColNo() int {
-	return e.colno
 }
 
 // List entries in the zonefile
@@ -184,7 +151,7 @@ func New() (z *Zonefile) {
 }
 
 // Parse bytestring containing a zonefile
-func Load(data []byte) (r *Zonefile, e ParsingError) {
+func Load(data []byte) (r *Zonefile, e *ParsingError) {
 	r = &Zonefile{}
 	l := lex(data)
 
@@ -288,16 +255,12 @@ var tttTTL taggedToken = taggedToken{
 var tttValue taggedToken = taggedToken{
 	token{val: []byte{'.'}, typ: tokenItem}, useValue}
 
-func newParsingError(msg string, where token) ParsingError {
-	var ret parsingError
-	ret.lineno = where.lineno
-	ret.colno = where.colno
-	ret.msg = msg
-	return ret
+func newParsingError(msg string, where token) *ParsingError {
+	return &ParsingError{msg: msg, LineNo: where.lineno, ColNo: where.colno}
 }
 
 // Parses a tokenized line from the zonefile
-func parseLine(line []token) (e Entry, err ParsingError) {
+func parseLine(line []token) (e Entry, err *ParsingError) {
 	// add "other" tag to each token
 	for _, t := range line {
 		var use tokenUse

@@ -18,7 +18,7 @@ func main() {
 
 	zf, perr := zonefile.Load(data)
 	if perr != nil {
-		log.Fatalf("dnsfmt: error on line %d: %s", perr.LineNo(), perr)
+		log.Fatalf("dnsfmt: error on line %d: %s", perr.LineNo, perr)
 	}
 
 	longestname := 0
