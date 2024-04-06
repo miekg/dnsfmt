@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/miekg/dns"
 )
 
 // Represents a DNS masterfile a.k.a. a zonefile
@@ -376,25 +378,6 @@ func parseLine(line []token) (e Entry, err *ParsingError) {
 	return
 }
 
-// Checks whether we simply append a new item or need to add a newline first
-func (z *Zonefile) endsOnNewline() bool {
-	if len(z.suffix) > 0 {
-		if z.suffix[len(z.suffix)-1].typ == tokenNewline {
-			return true
-		}
-		return false
-	}
-	if len(z.entries) == 0 {
-		return true
-	}
-	return z.entries[len(z.entries)-1].endsOnNewline()
-}
-
-// Checks whether the entry ends on a newline
-func (e Entry) endsOnNewline() bool {
-	return e.tokens[len(e.tokens)-1].t.typ == tokenNewline
-}
-
 func (t token) IsItem() bool {
 	return t.typ == tokenItem || t.typ == tokenQuotedItem
 }
@@ -443,26 +426,19 @@ func (t token) Value() []byte {
 }
 
 var dns_classes = []string{"IN", "HS", "CH"}
-var dns_classes_lut map[string]bool // XXX struct{} better?
-
-var dns_types = []string{
-	"A", "NS", "MD", "MF", "CNAME", "SOA", "MB", "MG", "MR", "NULL",
-	"WKS", "PTR", "HINFO", "MINFO", "MX", "TXT", "RP", "AFSDB", "X25",
-	"ISDN", "RT", "NSAP", "NSAP-PTR", "SIG", "KEY", "PX", "GPOS", "AAAA",
-	"LOC", "NXT", "EID", "NIMLOC", "SRV", "ATMA", "NAPTR", "KX", "CERT",
-	"A6", "DNAME", "SINK", "OPT", "APL", "DS", "SSHFP", "IPSECKEY", "RRSIG",
-	"NSEC", "DNSKEY", "DHCID", "NSEC3", "NSEC3PARAM", "TLSA", "SMIMEA", "HIP",
-	"NINFO", "RKEY", "TALINK", "CDS", "CDNSKEY", "OPENPGPKEY", "CSYNC", "SPF",
-	"UINFO", "UID", "GID", "UNSPEC", "NID", "L32", "L64", "LP", "EUI48",
-	"EUI64", "TKEY", "TSIG", "IXFR", "AXFR", "MAILB", "MAILA", "URI", "CAA",
-	"AVC", "TA", "DLV", "CAA"}
+var dns_classes_lut map[string]bool
+var dns_types = []string{}
 var dns_types_lut map[string]bool
 
 func init() {
+	for k, _ := range dns.StringToType {
+		dns_types = append(dns_types, k)
+	}
 	dns_classes_lut = make(map[string]bool)
 	for _, t := range dns_classes {
 		dns_classes_lut[t] = true
 	}
+	// Use miekg/dns to get all record types.
 	dns_types_lut = make(map[string]bool)
 	for _, t := range dns_types {
 		dns_types_lut[t] = true
