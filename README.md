@@ -9,7 +9,7 @@ Builds up-on: https://github.com/bwesterb/go-zonefile which is butchered and ven
 **dnsfmt** is a filter. See dnsfmt.1.md for more information.
 
 Needs some tests. Maybe some more newlines in the correct places. Also strip origin from more
-ownernames (right hand side: CNAME, NS, etc.).
+ownernames (right hand side: CNAME, NS, etc.). Auto-update SOA with option?
 
 Random ideas: sort record type per name, so this is consitent throughout the file. Group similar
 ownernames.

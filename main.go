@@ -54,6 +54,7 @@ func main() {
 	prevname := []byte{}
 	prevttl := 0
 	prevcom := false
+	firstname := true
 	for _, e := range zf.Entries() {
 		if e.IsComment {
 			if !prevcom {
@@ -65,20 +66,25 @@ func main() {
 			prevcom = true
 			continue
 		}
-		prevcom = false
 		if e.IsControl {
 			fmt.Printf("%s %s\n", e.Command(), bytes.Join(e.Values(), []byte(" ")))
+			prevcom = false
 			continue
 		}
 
 		if !bytes.Equal(prevname, e.Domain()) {
-			if len(e.Domain()) > 0 {
+			// keep comments near, don't add a newline when previous line was comment.
+			// first record doesn't need a newline
+			if len(e.Domain()) > 0 && !prevcom && !firstname {
 				fmt.Println()
 			}
 			fmt.Printf("%-*s", longestname, e.Domain())
 		} else {
 			fmt.Printf("%-*s", longestname, "")
 		}
+
+		prevcom = false
+		firstname = false
 
 		if ttl := e.TTL(); ttl != nil && *ttl != prevttl {
 			prevttl = *ttl
