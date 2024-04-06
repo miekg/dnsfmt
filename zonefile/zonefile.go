@@ -1,6 +1,5 @@
 //go:generate stringer -type=tokenType
 
-// Parse DNS masterfiles a.k.a. zonefiles.  See the Load function.
 package zonefile
 
 import (
@@ -23,7 +22,7 @@ func (z Zonefile) String() string {
 // Represents an entry in the zonefile
 type Entry struct {
 	tokens    []taggedToken
-	IsControl bool // is this a control ($INCLUDE, $TTL, ...) entry?
+	IsControl bool // is this a ($INCLUDE, $TTL, ...) directoive?
 	IsComment bool // is this a comment
 }
 

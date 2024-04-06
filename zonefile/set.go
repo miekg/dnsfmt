@@ -3,6 +3,7 @@ package zonefile
 import (
 	"bytes"
 	"errors"
+	"strconv"
 )
 
 func (t *token) SetValue(v []byte) {
@@ -70,5 +71,46 @@ func (e *Entry) SetDomain(v []byte) error {
 		toAdd = append(toAdd, tttSpace)
 	}
 	e.tokens = append(e.tokens[:iFirstToken], append(toAdd, e.tokens[iFirstToken:]...)...)
+	return nil
+}
+
+func (e *Entry) SetTTL(v int) error {
+	if e.IsControl || e.IsComment {
+		return errors.New("control and comment entries does not have a TTL")
+	}
+
+	is := e.find(useTTL)
+
+	if len(is) == 1 {
+		e.tokens[is[0]].t.SetValue([]byte(strconv.Itoa(v)))
+		return nil
+	}
+
+	// If there is no TTL item in the entry, add it
+	tTTL := tttTTL
+	tTTL.t.SetValue([]byte(strconv.Itoa(v)))
+	return e.addAfterDomain(tTTL)
+}
+
+// Adds a new item taggedToken into the entry after the domain (if it's there)
+// and otherwise at the start of the line.
+func (e *Entry) addAfterDomain(t taggedToken) error {
+	// If there is no domain item in the entry, add it at the start of the line
+	domainIs := e.find(useDomain)
+	if len(domainIs) == 1 {
+		e.tokens = append(e.tokens[:domainIs[0]+1],
+			append([]taggedToken{tttSpace, t},
+				e.tokens[domainIs[0]+1:]...)...)
+		return nil
+	}
+
+	// There is no domain entry.  Add class to the start of the line.
+	iFirstToken := e.startOfLine()
+	toAdd := []taggedToken{t}
+	if e.tokens[iFirstToken].t.typ != tokenWhiteSpace {
+		toAdd = append([]taggedToken{tttSpace}, toAdd...)
+	}
+	e.tokens = append(e.tokens[:iFirstToken+1], append(toAdd,
+		e.tokens[iFirstToken+1:]...)...)
 	return nil
 }

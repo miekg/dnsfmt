@@ -3,34 +3,25 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"log"
 	"os"
 
 	"github.com/miekg/dnsfmt/zonefile"
 )
 
-// Increments the serial of a zonefile
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("Usage:", os.Args[0], "<path to zonefile>")
-		os.Exit(1)
-	}
-
-	// Load zonefile
-	data, ioerr := os.ReadFile(os.Args[1])
-	if ioerr != nil {
-		fmt.Println(os.Args[1], ioerr)
-		os.Exit(2)
+	data, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		log.Fatalf("dnsfmt: %s", err)
 	}
 
 	zf, perr := zonefile.Load(data)
 	if perr != nil {
-		fmt.Println(os.Args[1], perr.LineNo(), perr)
-		os.Exit(3)
+		log.Fatalf("dnsfmt: error on line %d: %s", perr.LineNo(), perr)
 	}
 
 	longestname := 0
-	// TODO take ORIGIN in consideration, and also strip off the origin.
-	// If name _is_ origin, make it '@'
 	origin := []byte{}
 	for _, e := range zf.Entries() {
 		if e.IsComment {
@@ -42,6 +33,7 @@ func main() {
 			}
 			continue
 		}
+		// remove origin from other
 		if len(origin) > 0 && bytes.HasSuffix(e.Domain(), origin) {
 			// remove origin plus dot.
 			l := len(e.Domain())
@@ -57,9 +49,10 @@ func main() {
 			longestname = l
 		}
 	}
-	longestname += 4
+	longestname += 4 // Extra indent
 
 	prevname := []byte{}
+	prevttl := 0
 	for _, e := range zf.Entries() {
 		if e.IsComment {
 			for _, c := range e.Comments() {
@@ -78,25 +71,78 @@ func main() {
 			fmt.Printf("%-*s", longestname, "")
 		}
 
-		if ttl := e.TTL(); ttl != nil {
-			fmt.Printf("%5d", *ttl)
+		if ttl := e.TTL(); ttl != nil && *ttl != prevttl {
+			prevttl = *ttl
+			fmt.Printf("%10s", TimeToHuman(ttl))
 		} else {
-			fmt.Printf("%5s", " ")
+			fmt.Printf("%10s", " ")
 		}
 
 		fmt.Printf("%5s", e.Class())
 		fmt.Printf("   %-8s", e.Type())
 
-		if bytes.Equal(e.Type(), []byte("TXT")) {
+		// Specicial handling for certain RR types
+		switch {
+		case bytes.Equal(e.Type(), []byte("TXT")):
 			values := e.Values()
-			fmt.Printf("  ")
+			fmt.Printf(Space3)
 			for _, v := range values {
 				fmt.Printf(" %q", v)
 			}
 			fmt.Println()
-		} else {
-			fmt.Printf("   %s\n", bytes.Join(e.Values(), []byte(" ")))
+		case bytes.Equal(e.Type(), []byte("SOA")):
+			values := e.Values()
+			fmt.Printf("%s%s (\n", Space3, bytes.Join(values[:2], []byte(" ")))
+			for i, v := range values[2:] {
+				fmt.Printf("%-*s%s%-13s%s\n", longestname+Indent, " ", Space3, v, soacomment[i])
+			}
+			fmt.Printf("%-*s)\n", longestname+Indent, " ")
+
+		case bytes.Equal(e.Type(), []byte("DNSKEY")):
+			values := e.Values()
+			fmt.Printf("%s%s (\n", Space3, bytes.Join(values[:3], []byte(" ")))
+
+			all := bytes.Join(values[3:], nil)
+			pieces := Split(all, 55)
+			for _, p := range pieces {
+				fmt.Printf("%-*s%s%-13s\n", longestname+Indent, " ", Space3, p)
+			}
+			fmt.Printf("%-*s)\n", longestname+Indent, " ")
+
+		case bytes.Equal(e.Type(), []byte("RRSIG")):
+			values := e.Values()
+			fmt.Printf("%s%s (\n", Space3, bytes.Join(values[:8], []byte(" ")))
+
+			all := bytes.Join(values[8:], nil)
+			pieces := Split(all, 55)
+			for _, p := range pieces {
+				fmt.Printf("%-*s%s%-13s\n", longestname+Indent, " ", Space3, p)
+			}
+			fmt.Printf("%-*s)\n", longestname+Indent, " ")
+
+		default:
+			fmt.Printf("%s%s\n", Space3, bytes.Join(e.Values(), []byte(" ")))
 		}
 		prevname = e.Domain()
 	}
+}
+
+const (
+	Space3 = "   "
+	Indent = 29
+)
+
+var soacomment = []string{"; serial", "; refresh", "; retry", "; expire", "; minimum"}
+
+func Split(buf []byte, lim int) [][]byte {
+	var chunk []byte
+	chunks := make([][]byte, 0, len(buf)/lim+1)
+	for len(buf) >= lim {
+		chunk, buf = buf[:lim], buf[lim:]
+		chunks = append(chunks, chunk)
+	}
+	if len(buf) > 0 {
+		chunks = append(chunks, buf)
+	}
+	return chunks
 }
