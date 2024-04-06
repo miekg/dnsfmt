@@ -19,7 +19,10 @@ dnsfmt - format DNS zone files
 The zone is formatted according to the following rules:
 
 * ordering of the zone is left as-is
+* all whitespace is removed
 * unnecessary origins from names are stripped
+* a new comments gets an empty line before it
+* a new ownername gets an empty line before it
 * repeated ownernames are suppressed
 * TTLs are _all_ converted to human readable form
 * long records (DNSKEYs, RRSIGs) are wrapped and placed in braces

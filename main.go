@@ -53,19 +53,28 @@ func main() {
 
 	prevname := []byte{}
 	prevttl := 0
+	prevcom := false
 	for _, e := range zf.Entries() {
 		if e.IsComment {
+			if !prevcom {
+				fmt.Println()
+			}
 			for _, c := range e.Comments() {
 				fmt.Printf("%s\n", c)
 			}
+			prevcom = true
 			continue
 		}
+		prevcom = false
 		if e.IsControl {
 			fmt.Printf("%s %s\n", e.Command(), bytes.Join(e.Values(), []byte(" ")))
 			continue
 		}
 
 		if !bytes.Equal(prevname, e.Domain()) {
+			if len(e.Domain()) > 0 {
+				fmt.Println()
+			}
 			fmt.Printf("%-*s", longestname, e.Domain())
 		} else {
 			fmt.Printf("%-*s", longestname, "")
