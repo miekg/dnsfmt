@@ -123,7 +123,9 @@ func main() {
 		default:
 			fmt.Printf("%s%s\n", Space3, bytes.Join(e.Values(), []byte(" ")))
 		}
-		prevname = e.Domain()
+		if len(e.Domain()) > 0 {
+			prevname = e.Domain()
+		}
 	}
 }
 

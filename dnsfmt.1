@@ -11,20 +11,67 @@ dnsfmt \- format DNS zone files
 
 .SH "DESCRIPTION"
 .PP
-\fBDnsfmt\fP formats zone file. The zonefile must be piped to \fBdnsfmt\fP.
-There are no options.
+\fBDnsfmt\fP formats zone file. The zonefile must be piped to \fBdnsfmt\fP. There are no options.
+
+.PP
+The zone is formatted according to the following rules:
+
+.IP \(bu 4
+ordering of the zone is left as\-is
+.IP \(bu 4
+unnecessary origins from names are stripped
+.IP \(bu 4
+repeated ownernames are suppressed
+.IP \(bu 4
+TTLs are \fIall\fP converted to human readable form
+.IP \(bu 4
+long records (DNSKEYs, RRSIGs) are wrapped and placed in braces
+
+
+.PP
+No semantic checks are done, this is purely text manipulation with some basic zone file syntax
+understanding.
 
 .SH "EXAMPLE"
 .PP
 .RS
 
 .nf
-$TTL    6H
+% cat <<'EOF' | ./dnsfmt
+$TTL 6H
 $ORIGIN example.org.
 @       IN      SOA     ns miek.miek.nl. 1282630067  4H 1H 7D 4H
                 IN      NS  ns
-example.org.        IN    NS  ns\-ext.nlnetlabs.nl.
+example.org.            IN      NS  ns\-ext.nlnetlabs.nl.
+EOF
 
 .fi
 .RE
+
+.PP
+Returns:
+
+.PP
+.RS
+
+.nf
+$TTL 6H
+$ORIGIN example.org.
+@                 IN   SOA        ns miek.miek.nl. (
+                                     1282630067   ; serial
+                                     4H           ; refresh
+                                     1H           ; retry
+                                     7D           ; expire
+                                     4H           ; minimum
+                                  )
+                  IN   NS         ns
+                  IN   NS         ns\-ext.nlnetlabs.nl.
+
+.fi
+.RE
+
+.SH "AUTHOR"
+.PP
+Miek Gieben miek@miek.nl
+\[la]mailto:miek@miek.nl\[ra].
 
