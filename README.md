@@ -17,4 +17,4 @@ Builds up-on: https://github.com/bwesterb/go-zonefile which is butchered and ven
 No semantic checks are done, this is purely text manipulation with some basic zone file syntax
 understanding.
 
-Needs some tests, a manual page.
+Needs some tests, a manual page. Maybe some more newlines in the correct places.

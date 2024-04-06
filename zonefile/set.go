@@ -114,3 +114,21 @@ func (e *Entry) addAfterDomain(t taggedToken) error {
 		e.tokens[iFirstToken+1:]...)...)
 	return nil
 }
+
+// startOfLine finds the first token on the main line of the entry.
+func (e Entry) startOfLine() (r int) {
+	var firstItem int
+	for i := 0; i < len(e.tokens); i++ {
+		if e.tokens[i].t.IsItem() {
+			firstItem = i
+			break
+		}
+	}
+	for i := firstItem; i >= 0; i-- {
+		if e.tokens[i].t.typ == tokenNewline {
+			r = i + 1
+			return
+		}
+	}
+	return 0
+}

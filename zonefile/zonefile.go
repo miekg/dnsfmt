@@ -33,7 +33,7 @@ func (e Entry) Command() []byte {
 	return e.tokens[is[0]].t.Value()
 }
 
-// The domain specified for the entry.
+// Domain returns the ownername for the entry.
 func (e Entry) Domain() []byte {
 	is := e.find(useDomain)
 	if len(is) == 0 {
@@ -42,7 +42,7 @@ func (e Entry) Domain() []byte {
 	return e.tokens[is[0]].t.Value()
 }
 
-// The class specified for the entry.
+// Class returns the class for the entry.
 func (e Entry) Class() []byte {
 	is := e.find(useClass)
 	if len(is) == 0 {
@@ -51,7 +51,7 @@ func (e Entry) Class() []byte {
 	return e.tokens[is[0]].t.Value()
 }
 
-// The type specified for the entry.
+// Type returns the RR Type for the entry.
 func (e Entry) Type() []byte {
 	is := e.find(useType)
 	if len(is) == 0 {
@@ -60,7 +60,7 @@ func (e Entry) Type() []byte {
 	return e.tokens[is[0]].t.Value()
 }
 
-// The TTL specified for the entry
+// TTL retrurns the TTL for the entry (if specified).
 func (e Entry) TTL() *int {
 	is := e.find(useTTL)
 	if len(is) == 0 {
@@ -70,7 +70,7 @@ func (e Entry) TTL() *int {
 	return &i
 }
 
-// The values specified for the entry
+// Values returns the fields for the entry.
 func (e Entry) Values() (ret [][]byte) {
 	is := e.find(useValue)
 	for i := 0; i < len(is); i++ {
@@ -88,7 +88,7 @@ func (e Entry) Comments() (ret [][]byte) {
 	return
 }
 
-// Find all indices of tokens with the given use
+// Find all indices of tokens with the given use.
 func (e Entry) find(use tokenUse) (is []int) {
 	for i := 0; i < len(e.tokens); i++ {
 		if e.tokens[i].u == use {
@@ -98,33 +98,13 @@ func (e Entry) find(use tokenUse) (is []int) {
 	return
 }
 
-// Find the first token on the main line of the entry
-func (e Entry) startOfLine() (r int) {
-	var firstItem int
-	for i := 0; i < len(e.tokens); i++ {
-		if e.tokens[i].t.IsItem() {
-			firstItem = i
-			break
-		}
-	}
-	for i := firstItem; i >= 0; i-- {
-		if e.tokens[i].t.typ == tokenNewline {
-			r = i + 1
-			return
-		}
-	}
-	return 0
-}
-
 type ParsingError struct {
 	msg    string
 	LineNo int
 	ColNo  int
 }
 
-func (e *ParsingError) Error() string {
-	return e.msg
-}
+func (e *ParsingError) Error() string { return e.msg }
 
 // List entries in the zonefile
 func (z *Zonefile) Entries() (r []Entry) {
