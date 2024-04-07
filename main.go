@@ -38,6 +38,32 @@ func Reformat(data []byte, w io.Writer) error {
 			continue
 		}
 		e.SetDomain(StripOrigin(origin, e.Domain()))
+		// Strip origin from selected records.
+		values := e.Values()
+		switch {
+		case bytes.Equal(e.Type(), []byte("SOA")):
+			if len(values) < 3 {
+				return fmt.Errorf("malformed SOA RR: %v", values)
+			}
+			e.SetValue(0, StripOrigin(origin, values[0]))
+			e.SetValue(1, StripOrigin(origin, values[1]))
+
+		case bytes.Equal(e.Type(), []byte("RRSIG")):
+			if len(values) < 8 {
+				return fmt.Errorf("malformed RRSIG RR: %v", values)
+			}
+			e.SetValue(7, StripOrigin(origin, values[7]))
+
+		case bytes.Equal(e.Type(), []byte("NS")):
+			fallthrough
+		case bytes.Equal(e.Type(), []byte("CNAME")):
+			fallthrough
+		case bytes.Equal(e.Type(), []byte("NSEC")):
+			if len(values) < 1 {
+				return fmt.Errorf("malformed RR: %v", values)
+			}
+			e.SetValue(0, StripOrigin(origin, values[0]))
+		}
 
 		if l := len(e.Domain()); l > longestname {
 			longestname = l
@@ -91,20 +117,16 @@ func Reformat(data []byte, w io.Writer) error {
 		fmt.Fprintf(w, "   %-8s", e.Type())
 
 		// Specicial handling for certain RR types
+		values := e.Values()
 		switch {
 		case bytes.Equal(e.Type(), []byte("TXT")):
-			values := e.Values()
 			fmt.Fprintf(w, Space3)
 			for _, v := range values {
-				fmt.Fprintf(w, " %q", v)
+				fmt.Fprintf(w, "%q", v)
 			}
 			fmt.Fprintln(w)
-		case bytes.Equal(e.Type(), []byte("SOA")):
-			values := e.Values()
-			if len(values) < 3 {
-				return fmt.Errorf("malformed SOA record: %v", values)
-			}
 
+		case bytes.Equal(e.Type(), []byte("SOA")):
 			fmt.Fprintf(w, "%s%s (\n", Space3, bytes.Join(values[:2], []byte(" ")))
 			for i, v := range values[2:] {
 				fmt.Fprintf(w, "%-*s%s%-13s%s\n", longestname+Indent, " ", Space3, v, soacomment[i])
@@ -116,9 +138,8 @@ func Reformat(data []byte, w io.Writer) error {
 		case bytes.Equal(e.Type(), []byte("CDNSKEY")):
 			fallthrough
 		case bytes.Equal(e.Type(), []byte("DNSKEY")):
-			values := e.Values()
 			if len(values) < 4 {
-				return fmt.Errorf("malformed CDS/CDNSKEY/DNSKEY record: %v", values)
+				return fmt.Errorf("malformed RR: %v", values)
 			}
 			all := bytes.Join(values[3:], nil)
 			pieces := Split(all, 55)
@@ -134,10 +155,6 @@ func Reformat(data []byte, w io.Writer) error {
 			closeBrace(w, longestname)
 
 		case bytes.Equal(e.Type(), []byte("RRSIG")):
-			values := e.Values()
-			if len(values) < 9 {
-				return fmt.Errorf("malformed CDS/CDNSKEY/DNSKEY record: %v", values)
-			}
 			fmt.Fprintf(w, "%s%s (\n", Space3, bytes.Join(values[:8], []byte(" ")))
 			all := bytes.Join(values[8:], nil)
 			pieces := Split(all, 55)
@@ -147,8 +164,9 @@ func Reformat(data []byte, w io.Writer) error {
 			closeBrace(w, longestname)
 
 		default:
-			fmt.Fprintf(w, "%s%s\n", Space3, bytes.Join(e.Values(), []byte(" ")))
+			fmt.Fprintf(w, "%s%s\n", Space3, bytes.Join(values, []byte(" ")))
 		}
+
 		if len(e.Domain()) > 0 {
 			prevname = e.Domain()
 		}

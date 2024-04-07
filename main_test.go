@@ -26,6 +26,6 @@ $ORIGIN example.org.
                   IN   NS         ns
                   IN   NS         ns.example.org
 ` {
-		t.Fatal("failed to properly reformat")
+		t.Fatalf("failed to properly reformat\n%s\n", out.String())
 	}
 }
