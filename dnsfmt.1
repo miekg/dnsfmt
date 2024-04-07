@@ -7,11 +7,12 @@ dnsfmt \- format DNS zone files
 
 .SH "SYNOPSIS"
 .PP
-\fBdnsfmt\fP
+\fBdnsfmt\fP [\fBFILE\fP]...
 
 .SH "DESCRIPTION"
 .PP
-\fBDnsfmt\fP formats zone file. The zonefile must be piped to \fBdnsfmt\fP. There are no options.
+\fBDnsfmt\fP formats zone file from \fBFILE\fP. If no file is given, it reads from standard input.
+There are no options.
 
 .PP
 The zone is formatted according to the following rules:

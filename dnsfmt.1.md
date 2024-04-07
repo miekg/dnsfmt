@@ -10,11 +10,12 @@ dnsfmt - format DNS zone files
 
 # SYNOPSIS
 
-**dnsfmt**
+**dnsfmt** [**FILE**]...
 
 # DESCRIPTION
 
-**Dnsfmt** formats zone file. The zonefile must be piped to **dnsfmt**. There are no options.
+**Dnsfmt** formats zone file from **FILE**. If no file is given, it reads from standard input.
+There are no options.
 
 The zone is formatted according to the following rules:
 

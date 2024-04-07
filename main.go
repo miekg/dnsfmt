@@ -11,12 +11,22 @@ import (
 )
 
 func main() {
-	data, err := io.ReadAll(os.Stdin)
-	if err != nil {
-		log.Fatalf("dnsfmt: %s", err)
+	if len(os.Args[1:]) == 0 {
+		data, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			log.Fatalf("dnsfmt: %s", err)
+		}
+		Reformat(data, os.Stdout)
+		return
 	}
 
-	Reformat(data, os.Stdout)
+	for _, a := range os.Args[1:] {
+		data, err := os.ReadFile(a)
+		if err != nil {
+			log.Fatalf("dnsfmt: %s", err)
+		}
+		Reformat(data, os.Stdout)
+	}
 }
 
 func Reformat(data []byte, w io.Writer) error {
@@ -53,6 +63,12 @@ func Reformat(data []byte, w io.Writer) error {
 				return fmt.Errorf("malformed RRSIG RR: %v", values)
 			}
 			e.SetValue(7, StripOrigin(origin, values[7]))
+
+		case bytes.Equal(e.Type(), []byte("MX")):
+			if len(values) < 2 {
+				return fmt.Errorf("malformed MX RR: %v", values)
+			}
+			e.SetValue(1, StripOrigin(origin, values[1]))
 
 		case bytes.Equal(e.Type(), []byte("NS")):
 			fallthrough
