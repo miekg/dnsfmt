@@ -113,7 +113,7 @@ func main() {
 			}
 			closeBrace(longestname)
 
-		case bytes.Equal(e.Type(), []byte("CDS")):
+		case bytes.Equal(e.Type(), []byte("CDS")) || bytes.Equal(e.Type(), []byte("DS")):
 			fallthrough
 		case bytes.Equal(e.Type(), []byte("CDNSKEY")):
 			fallthrough
