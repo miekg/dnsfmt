@@ -16,6 +16,10 @@ func main() {
 		log.Fatalf("dnsfmt: %s", err)
 	}
 
+	Reformat(data, os.Stdout)
+}
+
+func Reformat(data []byte, w io.Writer) error {
 	zf, perr := zonefile.Load(data)
 	if perr != nil {
 		log.Fatalf("dnsfmt: error on line %d: %s", perr.LineNo, perr)
@@ -33,17 +37,7 @@ func main() {
 			}
 			continue
 		}
-		// remove origin from other
-		if len(origin) > 0 && bytes.HasSuffix(e.Domain(), origin) {
-			// remove origin plus dot.
-			l := len(e.Domain())
-
-			if l == len(origin) {
-				e.SetDomain([]byte("@"))
-			} else {
-				e.SetDomain(e.Domain()[:l-len(origin)-1])
-			}
-		}
+		e.SetDomain(StripOrigin(origin, e.Domain()))
 
 		if l := len(e.Domain()); l > longestname {
 			longestname = l
@@ -58,16 +52,16 @@ func main() {
 	for _, e := range zf.Entries() {
 		if e.IsComment {
 			if !prevcom {
-				fmt.Println()
+				fmt.Fprintln(w)
 			}
 			for _, c := range e.Comments() {
-				fmt.Printf("%s\n", c)
+				fmt.Fprintf(w, "%s\n", c)
 			}
 			prevcom = true
 			continue
 		}
 		if e.IsControl {
-			fmt.Printf("%s %s\n", e.Command(), bytes.Join(e.Values(), []byte(" ")))
+			fmt.Fprintf(w, "%s %s\n", e.Command(), bytes.Join(e.Values(), []byte(" ")))
 			prevcom = false
 			continue
 		}
@@ -76,11 +70,11 @@ func main() {
 			// keep comments near, don't add a newline when previous line was comment.
 			// first record doesn't need a newline
 			if len(e.Domain()) > 0 && !prevcom && !firstname {
-				fmt.Println()
+				fmt.Fprintln(w)
 			}
-			fmt.Printf("%-*s", longestname, e.Domain())
+			fmt.Fprintf(w, "%-*s", longestname, e.Domain())
 		} else {
-			fmt.Printf("%-*s", longestname, "")
+			fmt.Fprintf(w, "%-*s", longestname, "")
 		}
 
 		prevcom = false
@@ -88,30 +82,34 @@ func main() {
 
 		if ttl := e.TTL(); ttl != nil && *ttl != prevttl {
 			prevttl = *ttl
-			fmt.Printf("%10s", TimeToHuman(ttl))
+			fmt.Fprintf(w, "%10s", TimeToHuman(ttl))
 		} else {
-			fmt.Printf("%10s", " ")
+			fmt.Fprintf(w, "%10s", " ")
 		}
 
-		fmt.Printf("%5s", e.Class())
-		fmt.Printf("   %-8s", e.Type())
+		fmt.Fprintf(w, "%5s", e.Class())
+		fmt.Fprintf(w, "   %-8s", e.Type())
 
 		// Specicial handling for certain RR types
 		switch {
 		case bytes.Equal(e.Type(), []byte("TXT")):
 			values := e.Values()
-			fmt.Printf(Space3)
+			fmt.Fprintf(w, Space3)
 			for _, v := range values {
-				fmt.Printf(" %q", v)
+				fmt.Fprintf(w, " %q", v)
 			}
-			fmt.Println()
+			fmt.Fprintln(w)
 		case bytes.Equal(e.Type(), []byte("SOA")):
 			values := e.Values()
-			fmt.Printf("%s%s (\n", Space3, bytes.Join(values[:2], []byte(" ")))
-			for i, v := range values[2:] {
-				fmt.Printf("%-*s%s%-13s%s\n", longestname+Indent, " ", Space3, v, soacomment[i])
+			if len(values) < 3 {
+				return fmt.Errorf("malformed SOA record: %v", values)
 			}
-			closeBrace(longestname)
+
+			fmt.Fprintf(w, "%s%s (\n", Space3, bytes.Join(values[:2], []byte(" ")))
+			for i, v := range values[2:] {
+				fmt.Fprintf(w, "%-*s%s%-13s%s\n", longestname+Indent, " ", Space3, v, soacomment[i])
+			}
+			closeBrace(w, longestname)
 
 		case bytes.Equal(e.Type(), []byte("CDS")) || bytes.Equal(e.Type(), []byte("DS")):
 			fallthrough
@@ -119,37 +117,43 @@ func main() {
 			fallthrough
 		case bytes.Equal(e.Type(), []byte("DNSKEY")):
 			values := e.Values()
+			if len(values) < 4 {
+				return fmt.Errorf("malformed CDS/CDNSKEY/DNSKEY record: %v", values)
+			}
 			all := bytes.Join(values[3:], nil)
 			pieces := Split(all, 55)
 			if len(pieces) == 1 {
-				fmt.Printf("%s%s\n", Space3, bytes.Join(e.Values(), []byte(" ")))
+				fmt.Fprintf(w, "%s%s\n", Space3, bytes.Join(e.Values(), []byte(" ")))
 				break
 			}
 
-			fmt.Printf("%s%s (\n", Space3, bytes.Join(values[:3], []byte(" ")))
+			fmt.Fprintf(w, "%s%s (\n", Space3, bytes.Join(values[:3], []byte(" ")))
 			for _, p := range pieces {
-				fmt.Printf("%-*s%s%-13s\n", longestname+Indent, " ", Space3, p)
+				fmt.Fprintf(w, "%-*s%s%-13s\n", longestname+Indent, " ", Space3, p)
 			}
-			closeBrace(longestname)
+			closeBrace(w, longestname)
 
 		case bytes.Equal(e.Type(), []byte("RRSIG")):
 			values := e.Values()
-			fmt.Printf("%s%s (\n", Space3, bytes.Join(values[:8], []byte(" ")))
-
+			if len(values) < 9 {
+				return fmt.Errorf("malformed CDS/CDNSKEY/DNSKEY record: %v", values)
+			}
+			fmt.Fprintf(w, "%s%s (\n", Space3, bytes.Join(values[:8], []byte(" ")))
 			all := bytes.Join(values[8:], nil)
 			pieces := Split(all, 55)
 			for _, p := range pieces {
-				fmt.Printf("%-*s%s%-13s\n", longestname+Indent, " ", Space3, p)
+				fmt.Fprintf(w, "%-*s%s%-13s\n", longestname+Indent, " ", Space3, p)
 			}
-			closeBrace(longestname)
+			closeBrace(w, longestname)
 
 		default:
-			fmt.Printf("%s%s\n", Space3, bytes.Join(e.Values(), []byte(" ")))
+			fmt.Fprintf(w, "%s%s\n", Space3, bytes.Join(e.Values(), []byte(" ")))
 		}
 		if len(e.Domain()) > 0 {
 			prevname = e.Domain()
 		}
 	}
+	return nil
 }
 
 const (
@@ -159,8 +163,8 @@ const (
 
 var soacomment = []string{"; serial", "; refresh", "; retry", "; expire", "; minimum"}
 
-func closeBrace(longestname int) {
-	fmt.Printf("%-*s)\n", longestname+Indent+3, " ")
+func closeBrace(w io.Writer, longestname int) {
+	fmt.Fprintf(w, "%-*s)\n", longestname+Indent+3, " ")
 }
 
 func Split(buf []byte, lim int) [][]byte {
@@ -174,4 +178,17 @@ func Split(buf []byte, lim int) [][]byte {
 		chunks = append(chunks, buf)
 	}
 	return chunks
+}
+
+func StripOrigin(origin, name []byte) []byte {
+	if len(origin) > 0 && bytes.HasSuffix(name, origin) {
+		// remove origin plus dot.
+		l := len(name)
+		if l == len(origin) {
+			return []byte("@")
+		} else {
+			return name[:l-len(origin)-1]
+		}
+	}
+	return name
 }
