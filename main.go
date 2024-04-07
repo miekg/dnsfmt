@@ -111,18 +111,26 @@ func main() {
 			for i, v := range values[2:] {
 				fmt.Printf("%-*s%s%-13s%s\n", longestname+Indent, " ", Space3, v, soacomment[i])
 			}
-			fmt.Printf("%-*s)\n", longestname+Indent, " ")
+			closeBrace(longestname)
 
+		case bytes.Equal(e.Type(), []byte("CDS")):
+			fallthrough
+		case bytes.Equal(e.Type(), []byte("CDNSKEY")):
+			fallthrough
 		case bytes.Equal(e.Type(), []byte("DNSKEY")):
 			values := e.Values()
-			fmt.Printf("%s%s (\n", Space3, bytes.Join(values[:3], []byte(" ")))
-
 			all := bytes.Join(values[3:], nil)
 			pieces := Split(all, 55)
+			if len(pieces) == 1 {
+				fmt.Printf("%s%s\n", Space3, bytes.Join(e.Values(), []byte(" ")))
+				break
+			}
+
+			fmt.Printf("%s%s (\n", Space3, bytes.Join(values[:3], []byte(" ")))
 			for _, p := range pieces {
 				fmt.Printf("%-*s%s%-13s\n", longestname+Indent, " ", Space3, p)
 			}
-			fmt.Printf("%-*s)\n", longestname+Indent, " ")
+			closeBrace(longestname)
 
 		case bytes.Equal(e.Type(), []byte("RRSIG")):
 			values := e.Values()
@@ -133,7 +141,7 @@ func main() {
 			for _, p := range pieces {
 				fmt.Printf("%-*s%s%-13s\n", longestname+Indent, " ", Space3, p)
 			}
-			fmt.Printf("%-*s)\n", longestname+Indent, " ")
+			closeBrace(longestname)
 
 		default:
 			fmt.Printf("%s%s\n", Space3, bytes.Join(e.Values(), []byte(" ")))
@@ -150,6 +158,10 @@ const (
 )
 
 var soacomment = []string{"; serial", "; refresh", "; retry", "; expire", "; minimum"}
+
+func closeBrace(longestname int) {
+	fmt.Printf("%-*s)\n", longestname+Indent+3, " ")
+}
 
 func Split(buf []byte, lim int) [][]byte {
 	var chunk []byte
