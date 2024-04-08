@@ -12,7 +12,6 @@ dnsfmt \- format DNS zone files
 .SH "DESCRIPTION"
 .PP
 \fBDnsfmt\fP formats zone file from \fBFILE\fP. If no file is given, it reads from standard input.
-There are no options.
 
 .PP
 The zone is formatted according to the following rules:
@@ -38,6 +37,12 @@ long records (DNSKEYs, RRSIGs) are wrapped and placed in braces
 .PP
 No semantic checks are done, this is purely text manipulation with some basic zone file syntax
 understanding.
+
+.SH "OPTIONS"
+.TP
+\fB\fC-o\fR \fBORIGIN\fP
+Begin parsing with origin set to \fBORIGIN\fP
+
 
 .SH "EXAMPLE"
 .PP

@@ -15,7 +15,6 @@ dnsfmt - format DNS zone files
 # DESCRIPTION
 
 **Dnsfmt** formats zone file from **FILE**. If no file is given, it reads from standard input.
-There are no options.
 
 The zone is formatted according to the following rules:
 
@@ -30,6 +29,11 @@ The zone is formatted according to the following rules:
 
 No semantic checks are done, this is purely text manipulation with some basic zone file syntax
 understanding.
+
+# OPTIONS
+
+`-o` **ORIGIN**
+: Begin parsing with origin set to **ORIGIN**
 
 # EXAMPLE
 

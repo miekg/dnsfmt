@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -10,33 +11,41 @@ import (
 	"github.com/miekg/dnsfmt/zonefile"
 )
 
+var flagOrigin = flag.String("o", "", "set the origin")
+
 func main() {
-	if len(os.Args[1:]) == 0 {
+	flag.Parse()
+	if flag.NArg() == 0 {
 		data, err := io.ReadAll(os.Stdin)
 		if err != nil {
 			log.Fatalf("dnsfmt: %s", err)
 		}
-		Reformat(data, os.Stdout)
+		Reformat(data, []byte(*flagOrigin), os.Stdout)
 		return
 	}
 
-	for _, a := range os.Args[1:] {
+	for _, a := range flag.Args() {
 		data, err := os.ReadFile(a)
 		if err != nil {
 			log.Fatalf("dnsfmt: %s", err)
 		}
-		Reformat(data, os.Stdout)
+		Reformat(data, []byte(*flagOrigin), os.Stdout)
 	}
 }
 
-func Reformat(data []byte, w io.Writer) error {
+func Reformat(data, origin []byte, w io.Writer) error {
+	if len(origin) > 0 {
+		if origin[len(origin)-1] != '.' {
+			origin = append(origin, '.')
+		}
+	}
+
 	zf, perr := zonefile.Load(data)
 	if perr != nil {
 		log.Fatalf("dnsfmt: error on line %d: %s", perr.LineNo, perr)
 	}
 
 	longestname := 0
-	origin := []byte{}
 	for _, e := range zf.Entries() {
 		if e.IsComment {
 			continue
