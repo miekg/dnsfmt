@@ -137,8 +137,11 @@ func Reformat(data []byte, w io.Writer) error {
 		switch {
 		case bytes.Equal(e.Type(), []byte("TXT")):
 			fmt.Fprintf(w, Space3)
+			space := ""
+			// TODO: insert new lines when multiple blocks and longer then certain....
 			for _, v := range values {
-				fmt.Fprintf(w, "%q", v)
+				fmt.Fprintf(w, "%s%q", space, v)
+				space = " "
 			}
 			fmt.Fprintln(w)
 

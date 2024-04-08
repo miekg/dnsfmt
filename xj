@@ -21,3 +21,15 @@ avGiZDuOT5tA3m1RyR4aG6ouGUaHGN3nlzKCE+Qo K56uoZEcIPMN4dMDe9vqTLgGAyeCgMNot5n+w69
 S1O3Wd/VIdUeVWNDPbjvJdVsY1f4RSl2/8MvdOiZEkTJFnqeVHfORCPE BA+E7ebvBCn9J1CmsqO8SlLvXLJtB4GUiQPA0mxgITo0N4EXRoBufraW
 z/3aRN9PScbZBDY2HkPd5hRqwDqkVGt89nOFjaANuNWFxZJRjiUl6/9D H2B8fw== )
 miek.nl		21600	IN	RRSIG	DNSKEY 13 2 21600 20240512141716 20240405120211 5607 miek.nl. SKdaz4nf3PWrYWvxeNOz8hTI0RPh2YKSyV2xiSH0O//Yn/jIXQSr+pXc GJSouypfPzbmXjiLqsYj/To1cYSkuQ==
+
+; DMARC (https://www.learndmarc.com)
+; mail versturen via AUM RU zorgt voor een DKIM selector in het ru.nl domein dus relaxed alignment nodig voor DKIM!
+;;;_dmarc       600     IN      TXT             "v=DMARC1;p=quarantine;pct=100;ri=14400;rua=mailto:dmarc@science.ru.nl,mailto:dmarc_agg@vali.email;ruf=mailto:report.dmarc@cncz.nl;sp=reject;adkim=r;aspf=s;fo=1:d:s"
+_dmarc  600     IN      TXT             "v=DMARC1;p=none;pct=100;ri=14400;rua=mailto:dmarc@science.ru.nl,mailto:dmarc_agg@vali.email;ruf=mailto:report.dmarc@cncz.nl;sp=reject;adkim=r;aspf=s;fo=1:d:s"
+; https://easydmarc.com/blog/smtp-tls-reporting/
+_smtp._tls  600 IN  TXT "v=TLSRPTv1;rua=mailto:report.dmarc@cncz.nl"
+;---------------------------------------------------------------------
+; DKIM (https://www.learndmarc.com)
+sci20220721._domainkey  IN      TXT     ( "v=DKIM1; h=sha256; k=rsa; t=y:s; s=email; "
+                                        "p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsXecjdpESQla7t28JoZLyDItxGzEU3ZhfXuarLbwYCVmw3tRysXcJYQ2ggOGJLhw+vXUQ8G3iOSGR7f3ZB1poZwfyG0fzw+wK2JDu3mtcebGg6pq2S9rLrCRXEoeOHzw0cpmnwhn3qwHQUHU2m491ekaWKUYlc98PJzvD5Np+CW9dLbFJOd8TjuHcKFiTxTShm99VPg3ztVq9j"
+                                        "LmvjV8+6ZBYMuKyfCuKn4l1zWvSBJlm7o89jf2TJFwhrwlS7tLNjUTAtqKHT1+AqOFDDuxd/RMrNIuPIoJe6Hzzv6Nk7Q1FyS++OldlXx3EbFiaYOqdb8/LVMP+7c7PcK/GcUohwIDAQAB" )
