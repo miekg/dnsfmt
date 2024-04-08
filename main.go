@@ -135,7 +135,12 @@ func Reformat(data []byte, w io.Writer) error {
 			fmt.Fprintf(w, "%10s", " ")
 		}
 
-		fmt.Fprintf(w, "%5s", e.Class())
+		if len(e.Class()) > 0 {
+			fmt.Fprintf(w, "%5s", e.Class())
+		} else {
+			fmt.Fprintf(w, "%5s", "IN")
+
+		}
 		fmt.Fprintf(w, "   %-8s", e.Type())
 
 		// Specicial handling for certain RR types
