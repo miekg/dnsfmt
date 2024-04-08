@@ -108,7 +108,7 @@ func Reformat(data, origin []byte, w io.Writer) error {
 	firstname := true
 	for _, e := range zf.Entries() {
 		if e.IsComment {
-			if !prevcom {
+			if !prevcom && !firstname {
 				fmt.Fprintln(w)
 			}
 			for _, c := range e.Comments() {
