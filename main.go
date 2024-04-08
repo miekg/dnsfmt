@@ -58,6 +58,12 @@ func Reformat(data []byte, w io.Writer) error {
 			e.SetValue(0, StripOrigin(origin, values[0]))
 			e.SetValue(1, StripOrigin(origin, values[1]))
 
+		case bytes.Equal(e.Type(), []byte("SRV")):
+			if len(values) < 4 {
+				return fmt.Errorf("malformed SRV RR: %v", values)
+			}
+			e.SetValue(3, StripOrigin(origin, values[3]))
+
 		case bytes.Equal(e.Type(), []byte("RRSIG")):
 			if len(values) < 8 {
 				return fmt.Errorf("malformed RRSIG RR: %v", values)
@@ -145,6 +151,19 @@ func Reformat(data []byte, w io.Writer) error {
 			}
 			fmt.Fprintln(w)
 
+		case bytes.Equal(e.Type(), []byte("CAA")):
+			fmt.Fprintf(w, Space3)
+			space := ""
+			for i, v := range values {
+				if i < 2 {
+					fmt.Fprintf(w, "%s%s", space, v)
+				} else {
+					fmt.Fprintf(w, "%s%q", space, v)
+				}
+				space = " "
+			}
+			fmt.Fprintln(w)
+
 		case bytes.Equal(e.Type(), []byte("SOA")):
 			fmt.Fprintf(w, "%s%s (\n", Space3, bytes.Join(values[:2], []byte(" ")))
 			for i, v := range values[2:] {
@@ -152,6 +171,8 @@ func Reformat(data []byte, w io.Writer) error {
 			}
 			closeBrace(w, longestname)
 
+		case bytes.Equal(e.Type(), []byte("TLSA")):
+			fallthrough
 		case bytes.Equal(e.Type(), []byte("CDS")) || bytes.Equal(e.Type(), []byte("DS")):
 			fallthrough
 		case bytes.Equal(e.Type(), []byte("CDNSKEY")):
