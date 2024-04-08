@@ -13,7 +13,7 @@ $ORIGIN example.org.
 example.org.		IN	NS  ns.example.org
 `
 	out := &bytes.Buffer{}
-	Reformat([]byte(mess), out)
+	Reformat([]byte(mess), nil, out)
 	if out.String() != `$TTL 6H
 $ORIGIN example.org.
 @                 IN   SOA        ns miek.miek.nl. (
