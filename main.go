@@ -45,7 +45,11 @@ func Reformat(data, origin []byte, w io.Writer) error {
 		log.Fatalf("dnsfmt: error on line %d: %s", perr.LineNo, perr)
 	}
 
+	// 2 loops: strip origin and some admin, and then actually reformatting.
+
+	single := map[string]int{}
 	longestname := 0
+	prevname := []byte{}
 	for _, e := range zf.Entries() {
 		if e.IsComment {
 			continue
@@ -56,7 +60,18 @@ func Reformat(data, origin []byte, w io.Writer) error {
 			}
 			continue
 		}
+
 		e.SetDomain(StripOrigin(origin, e.Domain()))
+
+		// count number of types per name, as we want to group singletons.
+		if !bytes.Equal(prevname, e.Domain()) && len(prevname) > 0 {
+			if len(e.Domain()) > 0 {
+				single[string(e.Domain())] += 1
+			} else {
+				single[string(prevname)] += 1
+			}
+		}
+
 		// Strip origin from selected records.
 		values := e.Values()
 		switch {
@@ -99,10 +114,14 @@ func Reformat(data, origin []byte, w io.Writer) error {
 		if l := len(e.Domain()); l > longestname {
 			longestname = l
 		}
+		if len(e.Domain()) > 0 {
+			prevname = e.Domain()
+		}
 	}
-	longestname += 4 // Extra indent
+	longestname += 4 // extra indent
 
-	prevname := []byte{}
+	prevname = []byte{}
+	prevtype := []byte{}
 	prevttl := 0
 	prevcom := false
 	firstname := true
@@ -115,11 +134,15 @@ func Reformat(data, origin []byte, w io.Writer) error {
 				fmt.Fprintf(w, "%s\n", c)
 			}
 			prevcom = true
+			prevname = []byte{}
+			prevtype = []byte{}
 			continue
 		}
 		if e.IsControl {
 			fmt.Fprintf(w, "%s %s\n", e.Command(), bytes.Join(e.Values(), []byte(" ")))
 			prevcom = false
+			prevname = []byte{}
+			prevtype = []byte{}
 			continue
 		}
 
@@ -127,7 +150,16 @@ func Reformat(data, origin []byte, w io.Writer) error {
 			// keep comments near, don't add a newline when previous line was comment.
 			// first record doesn't need a newline
 			if len(e.Domain()) > 0 && !prevcom && !firstname {
-				fmt.Fprintln(w)
+				v, _ := single[string(prevname)]
+				//println(string(e.Type()), string(prevtype))
+				// names /w multiple types get a newline
+				if v > 1 {
+					fmt.Fprintln(w)
+				}
+				// single type names together, except when types differ
+				if v == 1 && !bytes.Equal(prevtype, e.Type()) {
+					fmt.Fprintln(w)
+				}
 			}
 			fmt.Fprintf(w, "%-*s", longestname, e.Domain())
 		} else {
@@ -224,6 +256,7 @@ func Reformat(data, origin []byte, w io.Writer) error {
 		if len(e.Domain()) > 0 {
 			prevname = e.Domain()
 		}
+		prevtype = e.Type()
 	}
 	return nil
 }

@@ -26,6 +26,7 @@ The zone is formatted according to the following rules:
 * repeated ownernames are suppressed
 * TTLs are _all_ converted to human readable form (on minute accuracy) when they are larger than 600
 * long records (DNSKEYs, RRSIGs) are wrapped and placed in braces
+* names with only one, but equal, type are grouped together without newlines
 
 No semantic checks are done, this is purely text manipulation with some basic zone file syntax
 understanding.
