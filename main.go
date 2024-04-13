@@ -118,7 +118,7 @@ func Reformat(data, origin []byte, w io.Writer) error {
 			prevname = e.Domain()
 		}
 	}
-	longestname += 4 // extra indent
+	longestname += 2 // extra indent (we already take the origin into account)
 
 	prevname = []byte{}
 	prevtype := []byte{}
