@@ -1,0 +1,29 @@
+$ORIGIN example.org.
+@                    IN   SOA        ns.example.org. hostmaster.example.org.  (
+                                        1282630063   ; serial
+                                        4H
+                                        1H           ; retry
+                                        7D           ; expire
+                                        3600           ; minimum
+                                        )
+        IN   NS         ns.example.org.
+                 IN   MX         10 aspmx3.googlemail.com.
+                     IN   A          127.0.0.1
+
+ns                    IN   A          127.0.0.1
+                     IN   AAAA       1::53
+
+mmark      3700          IN   CNAME      a
+; this is a comment
+; hello
+bot                  IN   CNAME      a
+
+aaaa                 IN   A          127.0.0.1
+                     IN   AAAA       1::53
+
+www                  IN   CNAME      a
+
+
+x                    IN   CNAME      a
+
+nlgids               IN   CNAME      a

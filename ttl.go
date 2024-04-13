@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 /*
 
@@ -18,6 +21,15 @@ const (
 	Day    = Hour * 24
 	Week   = Day * 7
 )
+
+func TimeToHumanByte(ttl []byte) []byte {
+	i, err := strconv.ParseUint(string(ttl), 10, 64)
+	if err != nil {
+		return ttl
+	}
+	j := int(i)
+	return []byte(TimeToHuman(&j))
+}
 
 func TimeToHuman(ttl *int) string {
 	// not for these smaller ones

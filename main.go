@@ -151,7 +151,6 @@ func Reformat(data, origin []byte, w io.Writer) error {
 			// first record doesn't need a newline
 			if len(e.Domain()) > 0 && !prevcom && !firstname {
 				v, _ := single[string(prevname)]
-				//println(string(e.Type()), string(prevtype))
 				// names /w multiple types get a newline
 				if v > 1 {
 					fmt.Fprintln(w)
@@ -213,7 +212,12 @@ func Reformat(data, origin []byte, w io.Writer) error {
 		case bytes.Equal(e.Type(), []byte("SOA")):
 			fmt.Fprintf(w, "%s%s (\n", Space3, bytes.Join(values[:2], []byte(" ")))
 			for i, v := range values[2:] {
-				fmt.Fprintf(w, "%-*s%s%-13s%s\n", longestname+Indent, " ", Space3, v, soacomment[i])
+				if i == 0 {
+					humandate := SerialToHuman(v)
+					fmt.Fprintf(w, "%-*s%s%-13s%s%s\n", longestname+Indent, " ", Space3, v, soacomment[i], humandate)
+				} else {
+					fmt.Fprintf(w, "%-*s%s%-13s%s\n", longestname+Indent, " ", Space3, TimeToHumanByte(v), soacomment[i])
+				}
 			}
 			closeBrace(w, longestname)
 
