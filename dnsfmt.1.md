@@ -34,14 +34,18 @@ understanding.
 # OPTIONS
 
 `-o` **ORIGIN**
-: Begin parsing with origin set to **ORIGIN**
+: begin parsing with origin set to **ORIGIN**
+
+`-i`
+: increase the serial, for epoch serial the current time is used, for date+sequence serial it is
+  just increased by one.
 
 # EXAMPLE
 
     % cat <<'EOF' | ./dnsfmt
     $TTL 6H
     $ORIGIN example.org.
-    @       IN      SOA     ns miek.miek.nl. 1282630067  4H 1H 7D 4H
+    @       IN      SOA     ns miek.miek.nl. 1282630067  4H 1H 7D 7200
                     IN      NS  ns
     example.org.            IN      NS  ns-ext.nlnetlabs.nl.
     EOF
@@ -50,15 +54,16 @@ Returns:
 
     $TTL 6H
     $ORIGIN example.org.
-    @                 IN   SOA        ns miek.miek.nl. (
-                                         1282630067   ; serial
-                                         4H           ; refresh
-                                         1H           ; retry
-                                         7D           ; expire
-                                         4H           ; minimum
-                                      )
-                      IN   NS         ns
-                      IN   NS         ns-ext.nlnetlabs.nl.
+    @               IN   SOA        ns miek.miek.nl. (
+                                       1712997354   ; serial  Sat, 13 Apr 2024 08:35:54 UTC
+                                       4H           ; refresh
+                                       1H           ; retry
+                                       7D           ; expire
+                                       2H           ; minimum
+                                       )
+                    IN   NS         ns
+                    IN   NS         ns-ext.nlnetlabs.nl.
+
 
 # AUTHOR
 

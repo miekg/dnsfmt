@@ -12,6 +12,7 @@ import (
 )
 
 var flagOrigin = flag.String("o", "", "set the origin")
+var flagInc = flag.Bool("i", true, "increase the serial")
 
 func main() {
 	flag.Parse()
@@ -213,6 +214,9 @@ func Reformat(data, origin []byte, w io.Writer) error {
 			fmt.Fprintf(w, "%s%s (\n", Space3, bytes.Join(values[:2], []byte(" ")))
 			for i, v := range values[2:] {
 				if i == 0 {
+					if *flagInc {
+						v = Increase(v)
+					}
 					humandate := SerialToHuman(v)
 					fmt.Fprintf(w, "%-*s%s%-13s%s%s\n", longestname+Indent, " ", Space3, v, soacomment[i], humandate)
 				} else {

@@ -20,6 +20,20 @@ func isEpoch(i int64) bool {
 	return true
 }
 
+func Increase(s []byte) []byte {
+	i, err := strconv.ParseInt(string(s), 10, 64)
+	if err != nil {
+		return s
+	}
+	if isEpoch(i) { // return current epoch
+		e := time.Now().Unix()
+		return []byte(strconv.FormatInt(e, 10))
+	}
+	// otherwise just increase? TODO(miek): smarter later
+	i++
+	return []byte(strconv.FormatInt(i, 10))
+}
+
 // SerialToHuman will detect if a number is epoch, or a coded date, ie:
 //
 // 1712989081 is epoch, because, when converted is less than 15 years ago, and not more than
@@ -30,9 +44,6 @@ func isEpoch(i int64) bool {
 //
 // Both are converted to a more human readable string.
 func SerialToHuman(s []byte) string {
-	// RFC822
-
-	// epoch?
 	i, err := strconv.ParseInt(string(s), 10, 64)
 	if err != nil {
 		return "  " + dateToHuman(s)
