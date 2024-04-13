@@ -8,4 +8,4 @@ Builds up-on: https://github.com/bwesterb/go-zonefile which is butchered and ven
 
 **dnsfmt** is a filter. See dnsfmt.1.md for more information.
 
-See this [screencast](https://asciinema.org/a/E5B2d7lfDV0X17wMkL5ouoybD).
+[![asciicast](https://asciinema.org/a/E5B2d7lfDV0X17wMkL5ouoybD.svg)](https://asciinema.org/a/E5B2d7lfDV0X17wMkL5ouoybD)
