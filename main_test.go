@@ -6,6 +6,7 @@ import (
 )
 
 func TestFormat(t *testing.T) {
+	*flagInc = false
 	const mess = `$TTL    6H
 $ORIGIN example.org.
 @       IN      SOA     ns miek.miek.nl. 1282630067  4H 1H 7D 7200
@@ -44,6 +45,7 @@ $ORIGIN example.nl.
 }
 
 func TestFormatKeepTogether(t *testing.T) {
+	*flagInc = false
 	const mess = `$ORIGIN miek.nl.
 @       IN      SOA     linode.miek.nl. miek.miek.nl. (
 			     1282630063 ; Serial
