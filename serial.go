@@ -8,6 +8,18 @@ import (
 const Year5 = time.Duration(24*time.Hour*365) * 5
 const Year15 = time.Duration(24*time.Hour*365) * 15
 
+func isEpoch(i int64) bool {
+	now := time.Now()
+	t := time.Unix(i, 0)
+	if now.Sub(t) > Year15 {
+		return false
+	}
+	if t.Sub(now) > Year5 {
+		return false
+	}
+	return true
+}
+
 // SerialToHuman will detect if a number is epoch, or a coded date, ie:
 //
 // 1712989081 is epoch, because, when converted is less than 15 years ago, and not more than
@@ -25,17 +37,10 @@ func SerialToHuman(s []byte) string {
 	if err != nil {
 		return "  " + dateToHuman(s)
 	}
-
-	// check the time interval
-	now := time.Now()
-	t := time.Unix(i, 0)
-	if now.Sub(t) > Year15 {
+	if !isEpoch(i) {
 		return "  " + dateToHuman(s)
 	}
-	if t.Sub(now) > Year5 {
-		return "  " + dateToHuman(s)
-	}
-	return "  " + t.UTC().Format(time.RFC1123)
+	return "  " + time.Unix(i, 0).UTC().Format(time.RFC1123)
 }
 
 func dateToHuman(s []byte) string {
