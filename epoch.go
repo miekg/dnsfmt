@@ -39,15 +39,19 @@ func SerialToHuman(s []byte) string {
 }
 
 func dateToHuman(s []byte) string {
-	// 2024.04.13.00
-	if len(s) != 10 {
+	if len(s) != 10 { // e.g. 2024041300
 		return ""
 	}
 	year, _ := strconv.ParseInt(string(s[:4]), 10, 64)
 	mon, _ := strconv.ParseInt(string(s[4:6]), 10, 64)
 	day, _ := strconv.ParseInt(string(s[6:8]), 10, 64)
-	hour, _ := strconv.ParseInt(string(s[8:10]), 10, 64)
+	sequence, _ := strconv.ParseInt(string(s[8:10]), 10, 64)
+	// sequence is considered the percentage the day has aged.
+	// calculate total minutes and round to hour and remaining minutes
+	minutes := 1440 / 100 * sequence
+	hour := minutes / 60
+	minutes -= hour * 60
 
-	t := time.Date(int(year), time.Month(mon), int(day), int(hour), 0, 0, 0, time.UTC)
+	t := time.Date(int(year), time.Month(mon), int(day), int(hour), int(minutes), 0, 0, time.UTC)
 	return t.Format(time.RFC1123)
 }
