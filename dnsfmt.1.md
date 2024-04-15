@@ -27,6 +27,7 @@ The zone is formatted according to the following rules:
 * TTLs are _all_ converted to human readable form (on minute accuracy) when they are larger than 600
 * long records (DNSKEYs, RRSIGs) are wrapped and placed in braces
 * names with only one, but equal, type are grouped together without newlines
+* the SOA serial comment gets a written out timestamp
 
 No semantic checks are done, this is purely text manipulation with some basic zone file syntax
 understanding.
@@ -38,7 +39,7 @@ understanding.
 
 `-i`
 : increase the serial, for epoch serial the current time is used, for date+sequence serial it is
-  just increased by one.
+  just increased by one, defaults to true
 
 # EXAMPLE
 

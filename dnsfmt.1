@@ -34,6 +34,8 @@ TTLs are \fIall\fP converted to human readable form (on minute accuracy) when th
 long records (DNSKEYs, RRSIGs) are wrapped and placed in braces
 .IP \(bu 4
 names with only one, but equal, type are grouped together without newlines
+.IP \(bu 4
+the SOA serial comment gets a written out timestamp
 
 
 .PP
@@ -47,7 +49,7 @@ begin parsing with origin set to \fBORIGIN\fP
 .TP
 \fB\fC-i\fR
 increase the serial, for epoch serial the current time is used, for date+sequence serial it is
-just increased by one.
+just increased by one, defaults to true
 
 
 .SH "EXAMPLE"
