@@ -13,7 +13,14 @@ $ORIGIN example.org.
 ns                   IN   A          127.0.0.1
                      IN   AAAA       1::53
 
-mmark         1H1M   IN   CNAME      a
+mmark         ( IN   CNAME      a
+)
+
+miek.nl.        21600   IN      DNSKEY  257 3 8 AwEAAcWdjBl4W4wh/hPxMDcBytmNCvEngIgB9Ut3C2+QI0oVz78/WK9KPoQF7B74JQ/mjO4fvIncBmPp6mFNxs9/WQX0IXf7oKviEVOXLjctR4D1KQLX0wprvtUIsQFIGdXaO6suTT5eDbSd6tTwu5xIkG    kDmQhhH8OQydoEuCwV245ZwF/8AIsqBYDNQtQ6zhd6jDC+uZJXg/9LuPOxFHbiMTjp6j3CCW0kHbfM/YHZErWWtjPj3U3Z7knQSIm5PO5FRKBEYDdr5UxWJ/1/20SrzI3iztvPwHDsA2rdHm/4YRzq7CvG4N0t9ac/T0a0Sxba/BUX2UVPWaIVBdTRBtgHi0s=
+miek.nl.        21600   IN      DNSKEY  257 3 13 mvqRh0nEx1OiD+YGef3GxWYKwRoQ1rOSv9y4Qego0qHG76k4z8yyrqbjKMoJvjuDp82mC2genJeQSFxEuT3tAA==
+
+
+bot               6H   IN   CNAME      a
 
 ; this is a comment
 ; hello

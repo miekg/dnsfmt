@@ -142,6 +142,7 @@ func Load(data []byte) (r *Zonefile, e *ParsingError) {
 	itemsInLine := 0
 	for {
 		t := <-l.tokens
+
 		if t.typ == tokenEOF {
 			break
 		}
@@ -251,8 +252,7 @@ func parseLine(line []token) (e Entry, err *ParsingError) {
 		}
 		e.tokens = append(e.tokens, taggedToken{t, use})
 	}
-	// Now, we figure out which item is what.  First we need to find the
-	// first item.
+	// Now, we figure out which item is what.  First we need to find the first item.
 	iFirstItem := -1
 	for i, tt := range e.tokens {
 		if tt.t.IsItem() {
@@ -261,9 +261,7 @@ func parseLine(line []token) (e Entry, err *ParsingError) {
 		}
 	}
 	if iFirstItem == -1 {
-		// Assume comment, TODO(miek): not always true?
-		e.IsComment = true
-		//err = newParsingError("there is an empty line: this should not happen", line[0])
+		e.IsComment = e.tokens[0].t.typ == tokenComment
 		return
 	}
 
@@ -333,7 +331,7 @@ func parseLine(line []token) (e Entry, err *ParsingError) {
 		// Ok, it must be a TTL
 		_, err2 := strconv.Atoi(string(e.tokens[i].t.Value()))
 		if err2 != nil {
-			err = newParsingError("invalid type/class/ttl", e.tokens[i].t)
+			err = newParsingError(fmt.Sprintf("invalid type/class/ttl: %q", e.tokens[i].t.Value()), e.tokens[i].t)
 			return
 		}
 		if foundTTL {
@@ -411,7 +409,7 @@ var dns_types = []string{}
 var dns_types_lut map[string]bool
 
 func init() {
-	for k, _ := range dns.StringToType {
+	for k := range dns.StringToType {
 		dns_types = append(dns_types, k)
 	}
 	dns_classes_lut = make(map[string]bool)
