@@ -216,30 +216,36 @@ const (
 
 // tagged token template newline
 var tttNewline taggedToken = taggedToken{
-	token{val: []byte{'\n'}, typ: tokenNewline}, useOther}
+	token{val: []byte{'\n'}, typ: tokenNewline}, useOther,
+}
 
 // tagged token template space
 var tttSpace taggedToken = taggedToken{
-	token{val: []byte{' '}, typ: tokenWhiteSpace}, useOther}
+	token{val: []byte{' '}, typ: tokenWhiteSpace}, useOther,
+}
 
 // tagged token template domain
 var tttDomain taggedToken = taggedToken{
-	token{val: []byte{'.'}, typ: tokenItem}, useDomain}
+	token{val: []byte{'.'}, typ: tokenItem}, useDomain,
+}
 
 // tagged token template class
 var tttClass taggedToken = taggedToken{
-	token{val: []byte{'.'}, typ: tokenItem}, useClass}
+	token{val: []byte{'.'}, typ: tokenItem}, useClass,
+}
 
 // tagged token template TTL
 var tttTTL taggedToken = taggedToken{
-	token{val: []byte{'.'}, typ: tokenItem}, useTTL}
+	token{val: []byte{'.'}, typ: tokenItem}, useTTL,
+}
 
 // tagged token template value
 var tttValue taggedToken = taggedToken{
-	token{val: []byte{'.'}, typ: tokenItem}, useValue}
+	token{val: []byte{'.'}, typ: tokenItem}, useValue,
+}
 
 func newParsingError(msg string, where token) *ParsingError {
-	return &ParsingError{msg: msg, LineNo: where.lineno, ColNo: where.colno}
+	return &ParsingError{msg: msg, LineNo: where.lineno + 1, ColNo: where.colno}
 }
 
 // Parses a tokenized line from the zonefile
@@ -329,11 +335,12 @@ func parseLine(line []token) (e Entry, err *ParsingError) {
 		}
 
 		// Ok, it must be a TTL
-		_, err2 := strconv.Atoi(string(e.tokens[i].t.Value()))
-		if err2 != nil {
+		v, ok := stringToTTL(string(e.tokens[i].t.Value()))
+		if !ok {
 			err = newParsingError(fmt.Sprintf("invalid type/class/ttl: %q", e.tokens[i].t.Value()), e.tokens[i].t)
 			return
 		}
+		e.tokens[i].t.SetValue([]byte(fmt.Sprintf("%d", v)))
 		if foundTTL {
 			err = newParsingError("double TTL", e.tokens[i].t)
 			return
@@ -403,10 +410,12 @@ func (t token) Value() []byte {
 	return obuf.Bytes()
 }
 
-var dns_classes = []string{"IN", "HS", "CH"}
-var dns_classes_lut map[string]bool
-var dns_types = []string{}
-var dns_types_lut map[string]bool
+var (
+	dns_classes     = []string{"IN", "HS", "CH"}
+	dns_classes_lut map[string]bool
+	dns_types       = []string{}
+	dns_types_lut   map[string]bool
+)
 
 func init() {
 	for k := range dns.StringToType {
@@ -488,15 +497,19 @@ func (l *lexer) emit(t tokenType) {
 	if t != tokenEOF {
 		val = l.buf[l.start:l.pos]
 	}
-	l.tokens <- token{typ: t, val: val,
-		lineno: l.lineno, colno: l.colno}
+	l.tokens <- token{
+		typ: t, val: val,
+		lineno: l.lineno, colno: l.colno,
+	}
 	l.start = l.pos
 }
 
 func (l *lexer) errorf(format string, args ...interface{}) lexerState {
-	l.tokens <- token{typ: tokenError,
+	l.tokens <- token{
+		typ:    tokenError,
 		val:    []byte(fmt.Sprintf(format, args...)),
-		lineno: l.lineno, colno: l.colno}
+		lineno: l.lineno, colno: l.colno,
+	}
 	return nil
 }
 
