@@ -2,8 +2,8 @@ package zonefile
 
 import "strconv"
 
-// stringToTTL parses things like 2w, 2m, etc, and returns the time in seconds.
-func stringToTTL(token string) (uint32, bool) {
+// StringToTTL parses things like 2w, 2m, etc, and returns the time in seconds.
+func StringToTTL(token string) (uint32, bool) {
 	// Try to parse as a plain number first
 	if seconds, err := strconv.ParseUint(token, 10, 32); err == nil {
 		return uint32(seconds), true

@@ -8,11 +8,14 @@ import (
 	"log"
 	"os"
 
+	"github.com/miekg/dns"
 	"github.com/miekg/dnsfmt/zonefile"
 )
 
-var flagOrigin = flag.String("o", "", "set the origin")
-var flagInc = flag.Bool("i", true, "increase the serial")
+var (
+	flagOrigin = flag.String("o", "", "set the origin")
+	flagInc    = flag.Bool("i", true, "increase the serial")
+)
 
 func main() {
 	flag.Parse()
@@ -75,37 +78,37 @@ func Reformat(data, origin []byte, w io.Writer) error {
 
 		// Strip origin from selected records.
 		values := e.Values()
-		switch {
-		case bytes.Equal(e.Type(), []byte("SOA")):
+		switch e.RRType() {
+		case dns.TypeSOA:
 			if len(values) < 3 {
 				return fmt.Errorf("malformed SOA RR: %v", values)
 			}
 			e.SetValue(0, StripOrigin(origin, values[0]))
 			e.SetValue(1, StripOrigin(origin, values[1]))
 
-		case bytes.Equal(e.Type(), []byte("SRV")):
+		case dns.TypeSRV:
 			if len(values) < 4 {
 				return fmt.Errorf("malformed SRV RR: %v", values)
 			}
 			e.SetValue(3, StripOrigin(origin, values[3]))
 
-		case bytes.Equal(e.Type(), []byte("RRSIG")):
+		case dns.TypeRRSIG:
 			if len(values) < 8 {
 				return fmt.Errorf("malformed RRSIG RR: %v", values)
 			}
 			e.SetValue(7, StripOrigin(origin, values[7]))
 
-		case bytes.Equal(e.Type(), []byte("MX")):
+		case dns.TypeMX:
 			if len(values) < 2 {
 				return fmt.Errorf("malformed MX RR: %v", values)
 			}
 			e.SetValue(1, StripOrigin(origin, values[1]))
 
-		case bytes.Equal(e.Type(), []byte("NS")):
+		case dns.TypeNS:
 			fallthrough
-		case bytes.Equal(e.Type(), []byte("CNAME")):
+		case dns.TypeCNAME:
 			fallthrough
-		case bytes.Equal(e.Type(), []byte("NSEC")):
+		case dns.TypeNSEC:
 			if len(values) < 1 {
 				return fmt.Errorf("malformed RR: %v", values)
 			}
@@ -180,14 +183,13 @@ func Reformat(data, origin []byte, w io.Writer) error {
 			fmt.Fprintf(w, "%5s", e.Class())
 		} else {
 			fmt.Fprintf(w, "%5s", "IN")
-
 		}
 		fmt.Fprintf(w, "   %-8s", e.Type())
 
 		// Specicial handling for certain RR types
 		values := e.Values()
-		switch {
-		case bytes.Equal(e.Type(), []byte("TXT")):
+		switch e.RRType() {
+		case dns.TypeTXT:
 			fmt.Fprintf(w, Space3)
 			space := ""
 			// TODO: insert new lines when multiple blocks and longer then certain....
@@ -197,7 +199,7 @@ func Reformat(data, origin []byte, w io.Writer) error {
 			}
 			fmt.Fprintln(w)
 
-		case bytes.Equal(e.Type(), []byte("CAA")):
+		case dns.TypeCAA:
 			fmt.Fprintf(w, Space3)
 			space := ""
 			for i, v := range values {
@@ -210,7 +212,7 @@ func Reformat(data, origin []byte, w io.Writer) error {
 			}
 			fmt.Fprintln(w)
 
-		case bytes.Equal(e.Type(), []byte("SOA")):
+		case dns.TypeSOA:
 			fmt.Fprintf(w, "%s%s (\n", Space3, bytes.Join(values[:2], []byte(" ")))
 			for i, v := range values[2:] {
 				if i == 0 {
@@ -220,18 +222,18 @@ func Reformat(data, origin []byte, w io.Writer) error {
 					humandate := SerialToHuman(v)
 					fmt.Fprintf(w, "%-*s%s%-13s%s%s\n", longestname+Indent, " ", Space3, v, soacomment[i], humandate)
 				} else {
-					fmt.Fprintf(w, "%-*s%s%-13s%s\n", longestname+Indent, " ", Space3, TimeToHumanByte(v), soacomment[i])
+					fmt.Fprintf(w, "%-*s%s%-13s%s\n", longestname+Indent, " ", Space3, bytes.ToUpper(TimeToHumanByte(v)), soacomment[i])
 				}
 			}
 			closeBrace(w, longestname)
 
-		case bytes.Equal(e.Type(), []byte("TLSA")):
+		case dns.TypeTLSA:
 			fallthrough
-		case bytes.Equal(e.Type(), []byte("CDS")) || bytes.Equal(e.Type(), []byte("DS")):
+		case dns.TypeCDS, dns.TypeDS:
 			fallthrough
-		case bytes.Equal(e.Type(), []byte("CDNSKEY")):
+		case dns.TypeCDNSKEY:
 			fallthrough
-		case bytes.Equal(e.Type(), []byte("DNSKEY")):
+		case dns.TypeDNSKEY:
 			if len(values) < 4 {
 				return fmt.Errorf("malformed RR: %v", values)
 			}
@@ -248,7 +250,7 @@ func Reformat(data, origin []byte, w io.Writer) error {
 			}
 			closeBrace(w, longestname)
 
-		case bytes.Equal(e.Type(), []byte("RRSIG")):
+		case dns.TypeRRSIG:
 			fmt.Fprintf(w, "%s%s (\n", Space3, bytes.Join(values[:8], []byte(" ")))
 			all := bytes.Join(values[8:], nil)
 			pieces := Split(all, 55)

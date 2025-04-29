@@ -57,7 +57,16 @@ func (e Entry) Type() []byte {
 	if len(is) == 0 {
 		return nil
 	}
-	return e.tokens[is[0]].t.Value()
+	return bytes.ToUpper(e.tokens[is[0]].t.Value())
+}
+
+// RRType returns the dns.RRTYpe for the entry
+func (e Entry) RRType() uint16 {
+	tb := e.Type()
+	if tb == nil {
+		return 0
+	}
+	return dns.StringToType[string(tb)]
 }
 
 // TTL retrurns the TTL for the entry (if specified).
@@ -317,14 +326,14 @@ func parseLine(line []token) (e Entry, err *ParsingError) {
 		}
 
 		// Is it a type?
-		if dns_types_lut[string(e.tokens[i].t.Value())] {
+		if _, ok := dns.StringToType[strings.ToUpper(string(e.tokens[i].t.Value()))]; ok {
 			iType = i
 			e.tokens[i].u = useType
 			break
 		}
 
 		// A class, maybe?
-		if dns_classes_lut[string(e.tokens[i].t.Value())] {
+		if _, ok := dns.StringToClass[strings.ToUpper(string(e.tokens[i].t.Value()))]; ok {
 			if foundClass {
 				err = newParsingError("two classes specified", e.tokens[i].t)
 				return
@@ -335,7 +344,7 @@ func parseLine(line []token) (e Entry, err *ParsingError) {
 		}
 
 		// Ok, it must be a TTL
-		v, ok := stringToTTL(string(e.tokens[i].t.Value()))
+		v, ok := StringToTTL(string(e.tokens[i].t.Value()))
 		if !ok {
 			err = newParsingError(fmt.Sprintf("invalid type/class/ttl: %q", e.tokens[i].t.Value()), e.tokens[i].t)
 			return
@@ -408,28 +417,6 @@ func (t token) Value() []byte {
 		obuf.WriteByte(c)
 	}
 	return obuf.Bytes()
-}
-
-var (
-	dns_classes     = []string{"IN", "HS", "CH"}
-	dns_classes_lut map[string]bool
-	dns_types       = []string{}
-	dns_types_lut   map[string]bool
-)
-
-func init() {
-	for k := range dns.StringToType {
-		dns_types = append(dns_types, k)
-	}
-	dns_classes_lut = make(map[string]bool)
-	for _, t := range dns_classes {
-		dns_classes_lut[t] = true
-	}
-	// Use miekg/dns to get all record types.
-	dns_types_lut = make(map[string]bool)
-	for _, t := range dns_types {
-		dns_types_lut[t] = true
-	}
 }
 
 // Lexer
