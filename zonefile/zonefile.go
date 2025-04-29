@@ -48,7 +48,7 @@ func (e Entry) Class() []byte {
 	if len(is) == 0 {
 		return nil
 	}
-	return e.tokens[is[0]].t.Value()
+	return bytes.ToUpper(e.tokens[is[0]].t.Value())
 }
 
 // Type returns the RR Type for the entry.
