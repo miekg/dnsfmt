@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"strconv"
+
+	"github.com/miekg/dnsfmt/zonefile"
 )
 
 /*
@@ -25,7 +27,12 @@ const (
 func TimeToHumanByte(ttl []byte) []byte {
 	i, err := strconv.ParseUint(string(ttl), 10, 64)
 	if err != nil {
-		return ttl
+		j, ok := zonefile.StringToTTL(string(ttl))
+		if !ok {
+			return ttl
+		}
+		k := int(j)
+		return []byte(TimeToHuman(&k))
 	}
 	j := int(i)
 	return []byte(TimeToHuman(&j))

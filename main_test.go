@@ -21,7 +21,7 @@ $ORIGIN example.org.
                                    1282630067   ; serial  Tue, 24 Aug 2010 06:07:47 UTC
                                    4H           ; refresh
                                    1H           ; retry
-                                   7D           ; expire
+                                   1W           ; expire
                                    2H           ; minimum
                                    )
                 IN   NS         ns
@@ -79,7 +79,7 @@ nlgids          IN      CNAME   a
                                         1282630063   ; serial  Tue, 24 Aug 2010 06:07:43 UTC
                                         4H           ; refresh
                                         1H           ; retry
-                                        7D           ; expire
+                                        1W           ; expire
                                         4H           ; minimum
                                         )
                      IN   NS         linode.atoom.net.
