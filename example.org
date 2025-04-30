@@ -1,7 +1,7 @@
-; vim: set ft=bindzone:
+; vim: set ft=bindzone;
 $ORIGIN example.org.
 @                      IN   SOA        ns hostmaster (
-                                          1745993824   ; serial  Wed, 30 Apr 2025 06:17:04 UTC
+                                          1745993850   ; serial  Wed, 30 Apr 2025 06:17:30 UTC
                                           4H           ; refresh
                                           1H           ; retry
                                           7D           ; expire
