@@ -7,15 +7,6 @@ import (
 	"github.com/miekg/dnsfmt/zonefile"
 )
 
-/*
-
-   #s = seconds = # x 1 seconds (really!)
-   #m = minutes = # x 60 seconds
-   #h = hours = # x 3600 seconds
-   #d = day = # x 86400 seconds
-   #w = week = # x 604800 seconds
-*/
-
 const (
 	Second = 1
 	Minute = Second * 60
