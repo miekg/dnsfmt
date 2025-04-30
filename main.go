@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	flagOrigin = flag.String("o", "", "set the origin")
+	flagOrigin = flag.String("o", "", "set the origin, otherwise taken from $ORIGIN or the owner name of the SOA record.")
 	flagInc    = flag.Bool("i", true, "increase the serial")
 )
 
@@ -38,18 +38,14 @@ func main() {
 }
 
 func Reformat(data, origin []byte, w io.Writer) error {
-	if len(origin) > 0 {
-		if origin[len(origin)-1] != '.' {
-			origin = append(origin, '.')
-		}
-	}
+	origin = zonefile.Fqdn(origin)
 
 	zf, perr := zonefile.Load(data)
 	if perr != nil {
 		log.Fatalf("dnsfmt: error on line %d: %s", perr.LineNo, perr)
 	}
 
-	// 2 loops: strip origin and some admin, and then actually reformatting.
+	// 2 loops: finding and striping the  origin and some admin, and then actually reformatting.
 
 	single := map[string]int{}
 	longestname := 0
@@ -60,7 +56,7 @@ func Reformat(data, origin []byte, w io.Writer) error {
 		}
 		if e.IsControl {
 			if bytes.Equal(e.Command(), []byte("$ORIGIN")) {
-				origin = e.Values()[0]
+				origin = zonefile.Fqdn(e.Values()[0])
 			}
 			continue
 		}
@@ -83,6 +79,10 @@ func Reformat(data, origin []byte, w io.Writer) error {
 			if len(values) < 3 {
 				return fmt.Errorf("malformed SOA RR: %v", values)
 			}
+			if len(origin) == 0 { // $ORIGIN not set take from SOA
+				origin = zonefile.Fqdn(e.Domain())
+			}
+
 			e.SetValue(0, StripOrigin(origin, values[0]))
 			e.SetValue(1, StripOrigin(origin, values[1]))
 

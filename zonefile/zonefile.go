@@ -633,3 +633,13 @@ func lexQuotedItem(l *lexer) lexerState {
 		}
 	}
 }
+
+func Fqdn(name []byte) []byte {
+	if len(name) == 0 {
+		return name
+	}
+	if name[len(name)-1] != '.' {
+		name = append(name, '.')
+	}
+	return name
+}

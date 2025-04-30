@@ -18,16 +18,17 @@ dnsfmt - format DNS zone files
 
 The zone is formatted according to the following rules:
 
-* ordering of the zone is left as-is
-* all whitespace is removed
-* unnecessary origins from names are stripped
-* a new comments gets an empty line before it
-* a new ownername gets an empty line before it
-* repeated ownernames are suppressed
-* TTLs are _all_ converted to human readable form (on minute accuracy) when they are larger than 600
-* long records (DNSKEYs, RRSIGs) are wrapped and placed in braces
-* names with only one, but equal, type are grouped together without newlines
-* the SOA serial comment gets a written out timestamp
+- ordering of the zone is left as-is
+- all whitespace is removed
+- unnecessary origins from names are stripped
+- a new comments gets an empty line before it
+- a new ownername gets an empty line before it
+- repeated ownernames are suppressed
+- TTLs are _all_ converted to human readable form (on minute accuracy) when they are larger than 600
+  seconds
+- long records (DNSKEYs, RRSIGs) are wrapped and placed in braces
+- names with only one, but equal, type are grouped together without newlines
+- the SOA serial comment gets a written out timestamp
 
 No semantic checks are done, this is purely text manipulation with some basic zone file syntax
 understanding.
@@ -39,7 +40,7 @@ understanding.
 
 `-i`
 : increase the serial, for epoch serial the current time is used, for date+sequence serial it is
-  just increased by one, defaults to true
+just increased by one, defaults to true
 
 # EXAMPLE
 
@@ -59,12 +60,11 @@ Returns:
                                        1712997354   ; serial  Sat, 13 Apr 2024 08:35:54 UTC
                                        4H           ; refresh
                                        1H           ; retry
-                                       7D           ; expire
+                                       1W           ; expire
                                        2H           ; minimum
                                        )
                     IN   NS         ns
                     IN   NS         ns-ext.nlnetlabs.nl.
-
 
 # AUTHOR
 
