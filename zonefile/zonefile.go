@@ -120,27 +120,6 @@ func (z *Zonefile) Entries() (r []Entry) {
 	return z.entries
 }
 
-// Write the zonefile to a bytearray
-func (z *Zonefile) Save() []byte {
-	var buf bytes.Buffer
-
-	for _, e := range z.entries {
-		for _, t := range e.tokens {
-			buf.Write(t.t.val)
-		}
-	}
-	for _, t := range z.suffix {
-		buf.Write(t.val)
-	}
-
-	return buf.Bytes()
-}
-
-// Create a new empty zonefile
-func New() (z *Zonefile) {
-	return &Zonefile{}
-}
-
 // Parse bytestring containing a zonefile
 func Load(data []byte) (r *Zonefile, e *ParsingError) {
 	r = &Zonefile{}
@@ -223,34 +202,13 @@ const (
 	useControl
 )
 
-// tagged token template newline
-var tttNewline taggedToken = taggedToken{
-	token{val: []byte{'\n'}, typ: tokenNewline}, useOther,
-}
-
 // tagged token template space
 var tttSpace taggedToken = taggedToken{
 	token{val: []byte{' '}, typ: tokenWhiteSpace}, useOther,
 }
 
-// tagged token template domain
 var tttDomain taggedToken = taggedToken{
 	token{val: []byte{'.'}, typ: tokenItem}, useDomain,
-}
-
-// tagged token template class
-var tttClass taggedToken = taggedToken{
-	token{val: []byte{'.'}, typ: tokenItem}, useClass,
-}
-
-// tagged token template TTL
-var tttTTL taggedToken = taggedToken{
-	token{val: []byte{'.'}, typ: tokenItem}, useTTL,
-}
-
-// tagged token template value
-var tttValue taggedToken = taggedToken{
-	token{val: []byte{'.'}, typ: tokenItem}, useValue,
 }
 
 func newParsingError(msg string, where token) *ParsingError {
