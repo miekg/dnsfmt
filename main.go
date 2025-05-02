@@ -104,6 +104,8 @@ func Reformat(data, origin []byte, w io.Writer) error {
 			}
 			e.SetValue(1, StripOrigin(origin, values[1]))
 
+		case dns.TypePTR:
+			fallthrough
 		case dns.TypeNS:
 			fallthrough
 		case dns.TypeCNAME:
