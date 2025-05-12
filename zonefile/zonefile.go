@@ -20,47 +20,35 @@ type Zonefile struct {
 // Represents an entry in the zonefile
 type Entry struct {
 	tokens    []taggedToken
-	IsControl bool // is this a ($INCLUDE, $TTL, ...) directoive?
+	IsControl bool // is this a ($INCLUDE, $TTL, ...) directive?
 	IsComment bool // is this a comment
 }
 
-// For a control entry, returns its command (e.g. $TTL, $ORIGIN, ...)
-func (e Entry) Command() []byte {
-	is := e.find(useControl)
+func (e Entry) Value(use tokenUse, transfunc func([]byte) []byte) []byte {
+	is := e.find(use)
 	if len(is) == 0 {
 		return nil
 	}
-	return e.tokens[is[0]].t.Value()
+	value := e.tokens[is[0]].t.Value()
+	if transfunc == nil {
+		return value
+	}
+	return transfunc(value)
 }
 
-// Domain returns the ownername for the entry.
-func (e Entry) Domain() []byte {
-	is := e.find(useDomain)
-	if len(is) == 0 {
-		return nil
-	}
-	return e.tokens[is[0]].t.Value()
-}
+// For a control entry, returns its command (e.g. $TTL, $ORIGIN, ...)
+func (e Entry) Command() []byte { return e.Value(useControl, nil) }
+
+// Domain returns the owner name for the entry.
+func (e Entry) Domain() []byte { return e.Value(useDomain, nil) }
 
 // Class returns the class for the entry.
-func (e Entry) Class() []byte {
-	is := e.find(useClass)
-	if len(is) == 0 {
-		return nil
-	}
-	return bytes.ToUpper(e.tokens[is[0]].t.Value())
-}
+func (e Entry) Class() []byte { return e.Value(useClass, bytes.ToUpper) }
 
 // Type returns the RR Type for the entry.
-func (e Entry) Type() []byte {
-	is := e.find(useType)
-	if len(is) == 0 {
-		return nil
-	}
-	return bytes.ToUpper(e.tokens[is[0]].t.Value())
-}
+func (e Entry) Type() []byte { return e.Value(useType, bytes.ToUpper) }
 
-// RRType returns the dns.RRTYpe for the entry
+// RRType returns the dns.RRType for the entry.
 func (e Entry) RRType() uint16 {
 	tb := e.Type()
 	if tb == nil {
@@ -69,7 +57,7 @@ func (e Entry) RRType() uint16 {
 	return dns.StringToType[string(tb)]
 }
 
-// TTL retrurns the TTL for the entry (if specified).
+// TTL returns the TTL for the entry (if specified).
 func (e Entry) TTL() *int {
 	is := e.find(useTTL)
 	if len(is) == 0 {
@@ -547,7 +535,7 @@ func lexInitial(l *lexer) lexerState {
 		if !l.inGroup {
 			return l.errorf("unexpected )")
 		}
-		l.emit(tokenLeftParen)
+		l.emit(tokenRightParen)
 		l.inGroup = false
 		return lexInitial
 	default:
@@ -592,12 +580,4 @@ func lexQuotedItem(l *lexer) lexerState {
 	}
 }
 
-func Fqdn(name []byte) []byte {
-	if len(name) == 0 {
-		return name
-	}
-	if name[len(name)-1] != '.' {
-		name = append(name, '.')
-	}
-	return name
-}
+func Fqdn(name []byte) []byte { return []byte(dns.Fqdn(string(name))) }
